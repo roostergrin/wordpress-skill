@@ -19,7 +19,6 @@ jobs:
           TARGET_BASE_URL="${{ secrets.ACF_SCHEMA_BASE_URL }}"
           WP_API_USER="${{ secrets.ACF_SCHEMA_API_USER }}"
           WP_API_APP_PASSWORD="${{ secrets.ACF_SCHEMA_API_APP_PASSWORD }}"
-          ACF_SCHEMA_API_HMAC_SECRET="${{ secrets.ACF_SCHEMA_API_HMAC_SECRET }}"
           TARGET_API_PULL_PATH="/wp-json/acf-schema/v1/pull"
           TARGET_API_PUSH_PATH="/wp-json/acf-schema/v1/push"
           TARGET_API_PUSH_ROUTE="/acf-schema/v1/push"
@@ -28,7 +27,7 @@ jobs:
           chmod 600 .env
 
       - name: Push dry-run
-        run: ./scripts/push.sh --schema-repo . --dry-run
+        run: ./scripts/push.sh --dry-run
 
       - name: Push apply
-        run: ./scripts/push.sh --schema-repo .
+        run: ./scripts/push.sh

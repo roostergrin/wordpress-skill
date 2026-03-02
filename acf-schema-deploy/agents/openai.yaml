@@ -1,4 +1,4 @@
 interface:
   display_name: "ACF Schema Deploy"
   short_description: "Safe ACF schema pull/push workflow via WordPress plugin API"
-  default_prompt: "Use $acf-schema-deploy to pull and push ACF JSON safely through the ACF Schema API plugin. Keep edits scoped to wp-content/acf-json and rely on server-side validation."
+  default_prompt: "Use $acf-schema-deploy to pull and push ACF JSON safely through the ACF Schema API plugin. Treat the current working directory as the target repo root, keep edits scoped to ./wp-content/acf-json, and rely on server-side validation."

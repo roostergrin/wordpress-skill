@@ -7,8 +7,8 @@ description: Safely edit ACF field group JSON files by hand, following existing 
 
 ## Purpose
 Use this skill to manually create or edit ACF Pro field group JSON files.
-All edits target `wp-content/acf-json/` in the schema repo at
-`/Users/gordonlewis/wordpress-skill/acf-schema-deploy/`.
+Treat the current working directory as the target repo root.
+All edits target `./wp-content/acf-json/`.
 
 ## Required Inputs
 - What to add or change (new field, new layout, new component, etc.)

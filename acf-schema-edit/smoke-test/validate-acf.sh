@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # validate-acf.sh — Validate ACF JSON files against skill guardrails
 # Usage: ./validate-acf.sh [acf-json-dir] [baseline-dir]
-#   acf-json-dir: directory with current JSON files (default: acf-schema-deploy/wp-content/acf-json)
+#   acf-json-dir: directory with current JSON files (default: ./wp-content/acf-json in the current repo)
 #   baseline-dir: directory with pre-edit snapshots (optional, enables diff checks)
 
 set -euo pipefail
 
-ACF_DIR="${1:-/workspace/acf-schema-deploy/wp-content/acf-json}"
+ACF_DIR="${1:-$(pwd -P)/wp-content/acf-json}"
 BASELINE_DIR="${2:-}"
 
 PASS=0

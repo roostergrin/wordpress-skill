@@ -8,6 +8,7 @@ description: Safely pull and push ACF content values through the WordPress REST 
 ## Purpose
 Use this skill for content operations only.
 Read and update ACF field values through WordPress REST API with strict safeguards.
+Treat the current working directory as the target repo root. Never use the skill install directory as the workspace.
 
 ## Scope
 - In scope: pull ACF content values from existing resources and push validated updates.
@@ -16,7 +17,7 @@ Read and update ACF field values through WordPress REST API with strict safeguar
 ## Required Inputs
 - WordPress API base URL and username (from workspace `.env`)
 - `WP_API_APP_PASSWORD` — WordPress **Application Password** (not regular login password).
-  Set in `/Users/gordonlewis/wordpress-skill/.env` or as environment variable.
+  Set in `./.env` in the current repo or as an environment variable.
 - Resource type (`pages`, `posts`, or configured allowlisted type)
 - Resource ID
 - Payload file for updates
@@ -45,9 +46,9 @@ Format: `xxxx xxxx xxxx xxxx xxxx xxxx`
 - Always run dry-run before real push.
 
 ## Workflow
-1. Copy `/Users/gordonlewis/wordpress-skill/.env.example` to `.env` and fill in values.
+1. Create or update `./.env` in the current repo and fill in values.
 2. Build field-name allowlist:
-   `scripts/build-allowlist.sh --schema-repo <abs-path-to-acf-schema-repo>`
+   `scripts/build-allowlist.sh`
 3. Pull current content snapshot:
    `scripts/pull-content.sh --resource-type pages --id 8`
 4. Inspect the pulled ACF JSON to understand the structure.
@@ -99,7 +100,7 @@ See the "Critical: GET/POST Schema Mismatch" section in `references/acf-rest-api
 
 ## Scripts
 - `scripts/build-allowlist.sh`: extract allowed field names and field keys from local ACF schema JSON.
-  Outputs: `runtime/allowed-field-names.txt` (for push validation) and `runtime/allowed-field-keys.txt` (reference).
+  Outputs: `./runtime/content-api/allowed-field-names.txt` (for push validation) and `./runtime/content-api/allowed-field-keys.txt` (reference).
 - `scripts/pull-content.sh`: fetch raw resource JSON and extracted `acf` JSON.
   Falls back gracefully from `context=edit` to view context if user lacks edit permissions.
 - `scripts/push-content.sh`: validate payload against field-name allowlist, then POST update.
@@ -107,17 +108,18 @@ See the "Critical: GET/POST Schema Mismatch" section in `references/acf-rest-api
 - `scripts/run-tests.sh`: integration test runner (safe by default, `--live` for write tests).
 
 ## Configuration
-- `/Users/gordonlewis/wordpress-skill/.env` — shared live config with credentials (gitignored)
-- `/Users/gordonlewis/wordpress-skill/.env.example` — shared template checked into repo
+- `./.env` — repo-local live config with credentials (gitignored)
+- `./wp-content/acf-json/` — repo-local schema source for allowlist generation
+- `./runtime/content-api/` — repo-local generated artifacts
 
 ## Testing
 Run the integration suite after any script changes:
 ```bash
 # Safe tests (read-only + dry-run validation)
-scripts/run-tests.sh --schema-repo <abs-path> --id <page-id>
+scripts/run-tests.sh --id <page-id>
 
 # Full suite including real write + automatic rollback
-scripts/run-tests.sh --schema-repo <abs-path> --id <page-id> --live
+scripts/run-tests.sh --id <page-id> --live
 ```
 Safety validation tests also work offline with a dummy password. See `references/testing.md`.
 

@@ -4,7 +4,7 @@ Safely pull and push ACF content values through the WordPress REST API for exist
 
 **Use when:** requests involve reading or updating ACF field values via `/wp-json/wp/v2` endpoints — not ACF schema edits.
 
-**Paths:** see `skills/config.md`. Scripts live in `$CONTENT_API_REPO/scripts/`.
+**Paths:** see `skills/config.md`. When this global skill runs, the current working directory is the target repo root. It uses `./.env`, reads schema from `./wp-content/acf-json/`, and stores artifacts in `./runtime/content-api/`.
 
 ## Scope
 - In scope: pull ACF content values from existing resources and push validated updates.
@@ -13,7 +13,7 @@ Safely pull and push ACF content values through the WordPress REST API for exist
 ## Required Inputs
 - WordPress API base URL and username (from workspace `.env`)
 - `WP_API_APP_PASSWORD` — WordPress **Application Password** (not regular login password).
-  Set in `/Users/gordonlewis/wordpress-skill/.env` or as environment variable.
+  Set in `./.env` in the current repo or as an environment variable.
 - Resource type (`pages`, `posts`, or configured allowlisted type)
 - Resource ID
 - Payload file for updates
@@ -42,9 +42,9 @@ Format: `xxxx xxxx xxxx xxxx xxxx xxxx`
 - Always run dry-run before real push.
 
 ## Workflow
-1. Copy `/Users/gordonlewis/wordpress-skill/.env.example` to `.env` and fill in values.
+1. Create or update `./.env` in the current repo and fill in values.
 2. Build field-name allowlist:
-   `scripts/build-allowlist.sh --schema-repo <abs-path-to-schema-repo>`
+   `scripts/build-allowlist.sh`
 3. Pull current content snapshot:
    `scripts/pull-content.sh --resource-type pages --id 8`
 4. Inspect the pulled ACF JSON to understand the structure.
@@ -93,7 +93,7 @@ When building payloads from pulled data, fix mismatched values before pushing:
 ## Scripts
 | Script | Purpose |
 |--------|---------|
-| `scripts/build-allowlist.sh` | Extract allowed field names and field keys from local ACF schema JSON |
+| `scripts/build-allowlist.sh` | Extract allowed field names and field keys from `./wp-content/acf-json/` |
 | `scripts/pull-content.sh` | Fetch raw resource JSON and extracted `acf` JSON |
 | `scripts/push-content.sh` | Validate payload against field-name allowlist, then POST update |
 | `scripts/common.sh` | Shared config loading, auth, and endpoint guardrails |
@@ -102,10 +102,10 @@ When building payloads from pulled data, fix mismatched values before pushing:
 ## Testing
 ```bash
 # Safe tests (read-only + dry-run validation)
-scripts/run-tests.sh --schema-repo <abs-path> --id <page-id>
+scripts/run-tests.sh --id <page-id>
 
 # Full suite including real write + automatic rollback
-scripts/run-tests.sh --schema-repo <abs-path> --id <page-id> --live
+scripts/run-tests.sh --id <page-id> --live
 ```
 
 ## References

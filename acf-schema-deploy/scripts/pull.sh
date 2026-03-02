@@ -3,9 +3,9 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: pull.sh --schema-repo <abs-path> [--dry-run] [--prune] [--active-only]
+Usage: pull.sh [--dry-run] [--prune] [--active-only]
 
-Pull ACF schema from the WordPress plugin API into local wp-content/acf-json/.
+Pull ACF schema from the WordPress plugin API into ./wp-content/acf-json/ in the current repo.
 This script writes one pretty JSON file per field group (group_*.json).
 EOF
 }
@@ -19,18 +19,12 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=./api-common.sh
 source "${SCRIPT_DIR}/api-common.sh"
 
-SCHEMA_REPO=""
 DRY_RUN=0
 PRUNE=0
 ACTIVE_ONLY=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --schema-repo)
-      [[ $# -ge 2 ]] || fail "Missing value for --schema-repo"
-      SCHEMA_REPO="$2"
-      shift 2
-      ;;
     --dry-run)
       DRY_RUN=1
       shift
@@ -53,17 +47,14 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-[[ -n "${SCHEMA_REPO}" ]] || fail "--schema-repo is required"
-[[ -d "${SCHEMA_REPO}" ]] || fail "Schema repo not found: ${SCHEMA_REPO}"
-
 require_command curl
 require_command jq
 
 echo "Loading workspace environment..."
 load_target_config
 
-local_acf_dir="${SCHEMA_REPO}/wp-content/acf-json"
-runtime_dir="${SCHEMA_REPO}/runtime"
+local_acf_dir="${ACF_JSON_DIR}"
+runtime_dir="${SCHEMA_DEPLOY_RUNTIME_DIR}"
 mkdir -p "${local_acf_dir}" "${runtime_dir}"
 
 tmp_dir="$(mktemp -d)"

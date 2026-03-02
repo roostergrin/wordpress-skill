@@ -1,12 +1,12 @@
 # Quickstart
 
 ## 1) Configure API target
-Copy the workspace env template:
+Create or update the repo-local env file:
 ```bash
-cp /Users/gordonlewis/wordpress-skill/.env.example /Users/gordonlewis/wordpress-skill/.env
+cp .env.example .env
 ```
 
-Edit `/Users/gordonlewis/wordpress-skill/.env`:
+Edit `./.env`:
 - `TARGET_BASE_URL` — your WordPress site URL
 - `WP_API_USER` — WordPress username
 - `WP_API_APP_PASSWORD` — WordPress Application Password (not regular password)
@@ -27,12 +27,12 @@ Regular WordPress passwords do not work for REST API writes.
 ## 2) Generate field-name allowlist from trusted schema
 
 ```bash
-scripts/build-allowlist.sh --schema-repo /ABS/PATH/TO/acf-schema-repo
+scripts/build-allowlist.sh
 ```
 
 Outputs:
-- `runtime/allowed-field-names.txt` — used by push-content.sh for validation
-- `runtime/allowed-field-keys.txt` — internal field keys for reference
+- `runtime/content-api/allowed-field-names.txt` — used by push-content.sh for validation
+- `runtime/content-api/allowed-field-keys.txt` — internal field keys for reference
 
 Regenerate after any schema changes.
 
@@ -43,8 +43,8 @@ scripts/pull-content.sh --resource-type pages --id 8
 ```
 
 Outputs:
-- `runtime/pull-pages-8-raw.json` — full API response
-- `runtime/pull-pages-8-acf.json` — extracted ACF object only
+- `runtime/content-api/pull-pages-8-raw.json` — full API response
+- `runtime/content-api/pull-pages-8-acf.json` — extracted ACF object only
 
 The pull script tries `context=edit` first (returns raw values, needs edit capability)
 and falls back to view context if the user lacks permissions.
@@ -85,5 +85,5 @@ scripts/push-content.sh --resource-type pages --id 8 --payload /ABS/PATH/payload
 ```bash
 scripts/pull-content.sh --resource-type pages --id 8
 # Check the updated field:
-jq '.seo.page_title' runtime/pull-pages-8-acf.json
+jq '.seo.page_title' runtime/content-api/pull-pages-8-acf.json
 ```

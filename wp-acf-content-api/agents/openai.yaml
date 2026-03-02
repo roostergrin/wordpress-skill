@@ -1,4 +1,4 @@
 interface:
   display_name: "WP ACF Content API"
   short_description: "Safe pull/push ACF content via WordPress REST API"
-  default_prompt: "Use $wp-acf-content-api to safely pull and update ACF content values via WordPress REST API with allowlist validation."
+  default_prompt: "Use $wp-acf-content-api to safely pull and update ACF content values via WordPress REST API with allowlist validation. Treat the current working directory as the target repo root and use repo-local .env, wp-content/acf-json, and runtime paths."

@@ -3,13 +3,13 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: build-allowlist.sh --schema-repo <abs-path> [--out <path>]
+Usage: build-allowlist.sh [--out <path>]
 
-Generate allowlisted ACF field names and field keys from local schema JSON files.
+Generate allowlisted ACF field names and field keys from ./wp-content/acf-json in the current repo.
 
 Outputs:
-  runtime/allowed-field-names.txt  — human-readable names (used by push-content.sh)
-  runtime/allowed-field-keys.txt   — internal field_* keys (reference/audit)
+  ./runtime/content-api/allowed-field-names.txt  — human-readable names (used by push-content.sh)
+  ./runtime/content-api/allowed-field-keys.txt   — internal field_* keys (reference/audit)
 EOF
 }
 
@@ -22,16 +22,10 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=./common.sh
 source "${SCRIPT_DIR}/common.sh"
 
-SCHEMA_REPO=""
 OUT_PATH=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --schema-repo)
-      [[ $# -ge 2 ]] || fail "Missing value for --schema-repo"
-      SCHEMA_REPO="$2"
-      shift 2
-      ;;
     --out)
       [[ $# -ge 2 ]] || fail "Missing value for --out"
       OUT_PATH="$2"
@@ -47,17 +41,17 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-[[ -n "${SCHEMA_REPO}" ]] || fail "--schema-repo is required"
-[[ -d "${SCHEMA_REPO}" ]] || fail "Schema repo not found: ${SCHEMA_REPO}"
 require_command jq
 
-load_api_config
 if [[ -z "${OUT_PATH}" ]]; then
-  OUT_PATH="${ACF_FIELD_ALLOWLIST_FILE}"
+  OUT_PATH="${CONTENT_API_FIELD_KEYS_FILE}"
+  NAMES_OUT="${CONTENT_API_FIELD_NAMES_FILE}"
+else
+  NAMES_OUT="$(dirname -- "${OUT_PATH}")/allowed-field-names.txt"
 fi
 
-acf_dir="${SCHEMA_REPO}/wp-content/acf-json"
-[[ -d "${acf_dir}" ]] || fail "Missing directory: ${acf_dir}"
+acf_dir="${ACF_JSON_DIR}"
+[[ -d "${acf_dir}" ]] || fail "Expected ACF schema at ${acf_dir}. Run this from the target repo root."
 
 tmp_keys="$(mktemp)"
 tmp_names="$(mktemp)"
@@ -93,8 +87,6 @@ fi
 mkdir -p "$(dirname -- "${OUT_PATH}")"
 mv "${tmp_keys}" "${OUT_PATH}"
 
-# Field names list goes alongside the keys list
-NAMES_OUT="${SKILL_ROOT}/runtime/allowed-field-names.txt"
 mkdir -p "$(dirname -- "${NAMES_OUT}")"
 mv "${tmp_names}" "${NAMES_OUT}"
 

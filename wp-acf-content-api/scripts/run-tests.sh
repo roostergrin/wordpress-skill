@@ -10,17 +10,17 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 SKILL_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
+# shellcheck source=./common.sh
+source "${SCRIPT_DIR}/common.sh"
 
-SCHEMA_REPO=""
 PAGE_ID=""
 LIVE=0
 
 usage() {
   cat <<'EOF'
-Usage: run-tests.sh --schema-repo <abs-path> --id <page-id> [--live]
+Usage: run-tests.sh --id <page-id> [--live]
 
 Options:
-  --schema-repo   Absolute path to acf-schema-deploy repo (required)
   --id            WordPress page/post ID to test against (required)
   --live          Enable tests 7-8 (real write + rollback). Without this
                   flag only read-only and dry-run tests execute.
@@ -30,7 +30,6 @@ EOF
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --schema-repo) SCHEMA_REPO="$2"; shift 2 ;;
     --id)          PAGE_ID="$2";     shift 2 ;;
     --live)        LIVE=1;           shift   ;;
     -h|--help)     usage; exit 0            ;;
@@ -38,18 +37,19 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-[[ -n "${SCHEMA_REPO}" ]] || { echo "ERROR: --schema-repo is required" >&2; exit 1; }
 [[ -n "${PAGE_ID}" ]]     || { echo "ERROR: --id is required" >&2; exit 1; }
 
 # Load workspace .env if password is not already in environment
 if [[ -z "${WP_API_APP_PASSWORD:-}" ]]; then
-  WORKSPACE_ENV_FILE="${SKILL_ROOT}/../.env"
   if [[ -f "${WORKSPACE_ENV_FILE}" ]]; then
     # shellcheck disable=SC1090
     source "${WORKSPACE_ENV_FILE}"
   fi
 fi
-[[ -n "${WP_API_APP_PASSWORD:-}" ]] || { echo "ERROR: WP_API_APP_PASSWORD must be set in /Users/gordonlewis/wordpress-skill/.env or environment" >&2; exit 1; }
+[[ -n "${WP_API_APP_PASSWORD:-}" ]] || { echo "ERROR: WP_API_APP_PASSWORD must be set in ${WORKSPACE_ENV_FILE} or environment" >&2; exit 1; }
+
+TEST_RUNTIME_DIR="${CONTENT_API_RUNTIME_DIR}/tests"
+mkdir -p "${TEST_RUNTIME_DIR}"
 
 # ─── Counters ───
 PASS=0
@@ -76,8 +76,8 @@ done
 echo ""
 echo "=== Test 2: Allowlist generation ==="
 
-if bash "${SKILL_ROOT}/scripts/build-allowlist.sh" --schema-repo "${SCHEMA_REPO}"; then
-  ALLOWLIST="${SKILL_ROOT}/runtime/allowed-field-keys.txt"
+if bash "${SKILL_ROOT}/scripts/build-allowlist.sh"; then
+  ALLOWLIST="${CONTENT_API_FIELD_KEYS_FILE}"
   if [[ -f "${ALLOWLIST}" ]]; then
     KEY_COUNT="$(wc -l < "${ALLOWLIST}" | tr -d ' ')"
     if [[ "${KEY_COUNT}" -gt 0 ]]; then
@@ -96,7 +96,7 @@ fi
 echo ""
 echo "=== Test 3: Read current ACF content ==="
 
-ACF_FILE="${SKILL_ROOT}/runtime/pull-pages-${PAGE_ID}-acf.json"
+ACF_FILE="${CONTENT_API_RUNTIME_DIR}/pull-pages-${PAGE_ID}-acf.json"
 
 if bash "${SKILL_ROOT}/scripts/pull-content.sh" --resource-type pages --id "${PAGE_ID}"; then
   if [[ -f "${ACF_FILE}" ]]; then
@@ -128,10 +128,10 @@ echo ""
 echo "=== Test 5: Dry-run valid update ==="
 
 # Use field names (what the REST API expects), not field keys
-NAMES_LIST="${SKILL_ROOT}/runtime/allowed-field-names.txt"
+NAMES_LIST="${CONTENT_API_FIELD_NAMES_FILE}"
 FIELD_NAME="$(head -n 1 "${NAMES_LIST}")"
 
-VALID_PAYLOAD="$(mktemp)"
+VALID_PAYLOAD="$(mktemp "${TEST_RUNTIME_DIR}/valid-payload.XXXXXX.json")"
 jq -n --arg k "${FIELD_NAME}" --arg v "API dry run test $(date +%s)" \
   '{acf:{($k):$v}}' > "${VALID_PAYLOAD}"
 
@@ -147,7 +147,7 @@ fi
 echo ""
 echo "=== Test 6a: Reject non-allowlisted field (safety) ==="
 
-BAD_KEY_PAYLOAD="$(mktemp)"
+BAD_KEY_PAYLOAD="$(mktemp "${TEST_RUNTIME_DIR}/reject-non-allowlisted.XXXXXX.json")"
 cat > "${BAD_KEY_PAYLOAD}" <<'JSON'
 {"acf":{"field_not_allowlisted":"bad"}}
 JSON
@@ -164,7 +164,7 @@ fi
 echo ""
 echo "=== Test 6b: Reject invalid payload shape (safety) ==="
 
-BAD_SHAPE_PAYLOAD="$(mktemp)"
+BAD_SHAPE_PAYLOAD="$(mktemp "${TEST_RUNTIME_DIR}/reject-invalid-shape.XXXXXX.json")"
 cat > "${BAD_SHAPE_PAYLOAD}" <<'JSON'
 {"acf":{"field_x":"x"},"title":"not allowed"}
 JSON
@@ -192,7 +192,7 @@ else
   ORIGINAL_VALUE="$(jq -r --arg k "${WRITE_FIELD}" '.[$k] // ""' "${ACF_FILE}")"
 
   TEST_VALUE="run-tests $(date +%s)"
-  LIVE_PAYLOAD="$(mktemp)"
+  LIVE_PAYLOAD="$(mktemp "${TEST_RUNTIME_DIR}/live-update.XXXXXX.json")"
   jq -n --arg k "${WRITE_FIELD}" --arg v "${TEST_VALUE}" \
     '{acf:{($k):$v}}' > "${LIVE_PAYLOAD}"
 
@@ -221,7 +221,7 @@ echo "=== Test 8: Rollback ==="
 if [[ "${LIVE}" -eq 0 ]]; then
   skip "rollback (use --live to enable)"
 else
-  ROLLBACK_PAYLOAD="$(mktemp)"
+  ROLLBACK_PAYLOAD="$(mktemp "${TEST_RUNTIME_DIR}/rollback.XXXXXX.json")"
   jq -n --arg k "${WRITE_FIELD}" --arg v "${ORIGINAL_VALUE}" \
     '{acf:{($k):$v}}' > "${ROLLBACK_PAYLOAD}"
 
@@ -247,7 +247,7 @@ echo ""
 echo "=== Test 9: Auth failure (safety) ==="
 
 # Build a valid payload so we get past local validation and hit the server
-AUTH_TEST_PAYLOAD="$(mktemp)"
+AUTH_TEST_PAYLOAD="$(mktemp "${TEST_RUNTIME_DIR}/auth-test.XXXXXX.json")"
 jq -n --arg k "${FIELD_NAME}" --arg v "auth-test" '{acf:{($k):$v}}' > "${AUTH_TEST_PAYLOAD}"
 
 # Push with wrong password — should fail at the curl/server level

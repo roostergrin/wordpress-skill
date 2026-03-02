@@ -3,8 +3,18 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 SKILL_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
-WORKSPACE_ROOT="$(cd -- "${SKILL_ROOT}/.." && pwd)"
+WORKSPACE_ROOT="$(pwd -P)"
 WORKSPACE_ENV_FILE="${WORKSPACE_ROOT}/.env"
+WORKSPACE_RUNTIME_DIR="${WORKSPACE_ROOT}/runtime"
+SCHEMA_DEPLOY_RUNTIME_DIR="${WORKSPACE_RUNTIME_DIR}/schema-deploy"
+ACF_JSON_DIR="${WORKSPACE_ROOT}/wp-content/acf-json"
+
+export SKILL_ROOT
+export WORKSPACE_ROOT
+export WORKSPACE_ENV_FILE
+export WORKSPACE_RUNTIME_DIR
+export SCHEMA_DEPLOY_RUNTIME_DIR
+export ACF_JSON_DIR
 
 fail() {
   echo "ERROR: $*" >&2
@@ -37,12 +47,12 @@ load_target_config() {
   fi
 
   TARGET_BASE_URL="${TARGET_BASE_URL:-${WP_API_BASE_URL:-}}"
-  : "${TARGET_BASE_URL:?TARGET_BASE_URL (or WP_API_BASE_URL) must be set in /Users/gordonlewis/wordpress-skill/.env or environment}"
+  : "${TARGET_BASE_URL:?TARGET_BASE_URL (or WP_API_BASE_URL) must be set in ${WORKSPACE_ENV_FILE} or environment}"
 
   TARGET_API_USER="${TARGET_API_USER:-${WP_API_USER:-${WP_API_USERNAME:-}}}"
   TARGET_API_APP_PASSWORD="${TARGET_API_APP_PASSWORD:-${WP_API_APP_PASSWORD:-}}"
-  : "${TARGET_API_USER:?TARGET_API_USER (or WP_API_USER/WP_API_USERNAME) must be set in /Users/gordonlewis/wordpress-skill/.env or environment}"
-  : "${TARGET_API_APP_PASSWORD:?TARGET_API_APP_PASSWORD (or WP_API_APP_PASSWORD) must be set in /Users/gordonlewis/wordpress-skill/.env or environment}"
+  : "${TARGET_API_USER:?TARGET_API_USER (or WP_API_USER/WP_API_USERNAME) must be set in ${WORKSPACE_ENV_FILE} or environment}"
+  : "${TARGET_API_APP_PASSWORD:?TARGET_API_APP_PASSWORD (or WP_API_APP_PASSWORD) must be set in ${WORKSPACE_ENV_FILE} or environment}"
 
   TARGET_BASE_URL="${TARGET_BASE_URL%/}"
   TARGET_API_PULL_PATH="${TARGET_API_PULL_PATH:-/wp-json/acf-schema/v1/pull}"
@@ -117,7 +127,8 @@ api_post_json() {
 
 build_push_signature_headers() {
   local payload_file="$1"
-  [[ -n "${TARGET_API_HMAC_SECRET}" ]] || fail "TARGET_API_HMAC_SECRET (or ACF_SCHEMA_API_HMAC_SECRET) is required for signed push."
+  PUSH_SIGNATURE_HEADERS=()
+  [[ -n "${TARGET_API_HMAC_SECRET}" ]] || return 0
 
   local timestamp
   local nonce

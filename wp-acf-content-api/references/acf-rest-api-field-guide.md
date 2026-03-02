@@ -6,7 +6,7 @@ How to format payloads for each ACF field type when posting via the WordPress RE
 
 **Use field names, not field keys.** The REST API expects human-readable field names
 (`seo`, `sections`, `title`) in the `acf` payload object — not internal keys (`field_abc123`).
-The `build-allowlist.sh` script generates `runtime/allowed-field-names.txt` for validation.
+The `build-allowlist.sh` script generates `runtime/content-api/allowed-field-names.txt` for validation.
 
 **Mirror the GET response.** The safest approach: pull the current content, see the structure,
 and format your POST payload to match it.
@@ -297,7 +297,7 @@ To create an Application Password:
 3. Enter a name, click "Add New Application Password"
 4. Copy the generated password (format: `xxxx xxxx xxxx xxxx xxxx xxxx`)
 
-Store it in `/Users/gordonlewis/wordpress-skill/.env` as `WP_API_APP_PASSWORD` (gitignored)
+Store it in `./.env` in the current repo as `WP_API_APP_PASSWORD` (gitignored)
 or export it as an environment variable.
 
 ## The `acf_format` Query Parameter

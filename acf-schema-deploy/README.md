@@ -3,27 +3,28 @@
 This skill manages ACF schema JSON through the WordPress plugin API:
 
 - Pull from `POST /wp-json/acf-schema/v1/pull`
-- Push to `POST /wp-json/acf-schema/v1/push` (signed)
+- Push to `POST /wp-json/acf-schema/v1/push`
 
 Local schema remains canonical in `wp-content/acf-json/group_*.json`.
+The plugin code is maintained in the standalone `wp-acf-schema-api-plugin` repository rather than this skills repo.
 Skill entrypoint for Codex is this directory's `SKILL.md`.
 
 ## Commands
 
 ```bash
-cd /Users/gordonlewis/wordpress-skill/acf-schema-deploy
+# Run from the target repo root.
 
 # Pull latest schema from WordPress
-scripts/pull.sh --schema-repo .
+scripts/pull.sh
 
 # Push dry-run (recommended first)
-scripts/push.sh --schema-repo . --dry-run
+scripts/push.sh --dry-run
 
 # Push apply
-scripts/push.sh --schema-repo .
+scripts/push.sh
 
 # Intentionally changing field keys
-scripts/push.sh --schema-repo . --allow-field-key-changes
+scripts/push.sh --allow-field-key-changes
 ```
 
 `scripts/deploy-main.sh` is a backward-compatible alias to `scripts/push.sh`.
@@ -32,14 +33,19 @@ scripts/push.sh --schema-repo . --allow-field-key-changes
 
 Set root-level env (preferred):
 ```bash
-cp /Users/gordonlewis/wordpress-skill/.env.example /Users/gordonlewis/wordpress-skill/.env
+cp .env.example .env
 
-cat > /Users/gordonlewis/wordpress-skill/.env <<'EOF'
+cat > .env <<'EOF'
 TARGET_BASE_URL="https://api-gordon-acf-demo.roostergrintemplates.com"
 WP_API_USER="your-user"
 WP_API_APP_PASSWORD="your-app-password"
-ACF_SCHEMA_API_HMAC_SECRET="your-hmac-secret"
 EOF
+```
+
+Optional when a site explicitly opts back into signed pushes:
+
+```bash
+ACF_SCHEMA_API_HMAC_SECRET="your-hmac-secret"
 ```
 
 ## Validation Model
@@ -49,8 +55,8 @@ Validation is server-side in the plugin:
 - JSON payload structure checks
 - Duplicate sibling field name checks
 - Field-key stability checks (unless `allow_field_key_changes=true`)
-- Signed push verification (HMAC + nonce + timestamp)
 - Optional schema hash lock (`expected_hash`)
+- Optional signed push verification when the site enables it
 
 ## Notes
 

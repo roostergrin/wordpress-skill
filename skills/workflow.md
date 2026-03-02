@@ -77,9 +77,10 @@ Given a design/screenshot, follow these steps:
 
 ### Step 3: Deploy to WordPress
 - Read `skills/acf-schema-deploy.md`
-- Pull baseline if needed: `scripts/pull.sh --schema-repo .`
-- Dry-run push: `scripts/push.sh --schema-repo . --dry-run`
-- Apply push: `scripts/push.sh --schema-repo .`
+- Run from the target repo root
+- Pull baseline if needed: `scripts/pull.sh`
+- Dry-run push: `scripts/push.sh --dry-run`
+- Apply push: `scripts/push.sh`
 
 ### Step 4: Populate content
 - Read `skills/wp-acf-content-api.md`

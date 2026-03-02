@@ -12,7 +12,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-ACF_DIR="/workspace/acf-schema-deploy/wp-content/acf-json"
+WORKSPACE_ROOT="$(pwd -P)"
+ACF_DIR="${WORKSPACE_ROOT}/wp-content/acf-json"
 BASELINE_DIR="/tmp/acf-smoke-baseline"
 PAGE_SECTIONS="$ACF_DIR/group_62211673cd81a.json"
 

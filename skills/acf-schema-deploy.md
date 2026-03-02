@@ -3,8 +3,9 @@
 Safely manage ACF schema-as-code for a single main WordPress backend using a plugin API pull/push flow.
 
 **Use when:** requests involve pulling schema to local JSON or pushing updated schema JSON to WordPress.
+Assumes the standalone `wp-acf-schema-api-plugin` repository is already installed on the target WordPress site.
 
-**Paths:** see `/Users/gordonlewis/wordpress-skill/skills/config.md`. Scripts live in `$SCHEMA_REPO/scripts/`.
+**Paths:** see `skills/config.md`. When this global skill runs, the current working directory is the target repo root. It uses `./.env`, `./wp-content/acf-json/`, and `./runtime/schema-deploy/`.
 
 ## Required Inputs
 - Schema change to deploy, or request to pull latest schema.
@@ -16,45 +17,45 @@ Safely manage ACF schema-as-code for a single main WordPress backend using a plu
 - Never print or expose secrets (`.env`, `wp-config.php`, private keys).
 - Never run arbitrary shell outside declared scripts.
 - Use only `pull.sh` and `push.sh` for schema transport.
-- Signed push is required.
+- Push auth comes from WordPress API credentials; signed push is optional.
 
 ## Quick Start
 ```bash
-cd $SCHEMA_REPO
+# Run from the target repo root.
 
 # Pull from WordPress
-scripts/pull.sh --schema-repo .
+scripts/pull.sh
 
 # Edit JSON files locally (see skills/acf-schema-edit.md)
 
 # Push dry-run then apply
-scripts/push.sh --schema-repo . --dry-run
-scripts/push.sh --schema-repo .
+scripts/push.sh --dry-run
+scripts/push.sh
 
 # For intentional field-key set changes
-scripts/push.sh --schema-repo . --allow-field-key-changes
+scripts/push.sh --allow-field-key-changes
 ```
 
 ## Scripts
 | Script | Purpose |
 |--------|---------|
 | `scripts/pull.sh` | Pull schema from WordPress API into local `wp-content/acf-json/` |
-| `scripts/push.sh` | Push local `group_*.json` to WordPress API (signed) |
+| `scripts/push.sh` | Push local `group_*.json` to WordPress API |
 | `scripts/deploy-main.sh` | Backward-compatible alias to `push.sh` |
 
 Validation now runs in the plugin API:
 - payload structure checks
 - duplicate sibling field-name checks
 - field-key stability checks (unless explicitly allowed)
-- HMAC signature + nonce + timestamp checks
+- optional signed push checks when the site enables them
 
 ## Workflow Detail
-1. Pull: `scripts/pull.sh --schema-repo .`
+1. Pull: `scripts/pull.sh`
 2. Edit JSON locally.
 3. Review diff.
-4. Push dry-run: `scripts/push.sh --schema-repo . --dry-run`
-5. Push apply: `scripts/push.sh --schema-repo .`
+4. Push dry-run: `scripts/push.sh --dry-run`
+5. Push apply: `scripts/push.sh`
 
 ## References
-- `/Users/gordonlewis/wordpress-skill/acf-schema-deploy/references/bootstrap.md`
-- `/Users/gordonlewis/wordpress-skill/acf-schema-deploy/references/github-actions-main.yml`
+- `acf-schema-deploy/references/bootstrap.md`
+- `acf-schema-deploy/references/github-actions-main.yml`

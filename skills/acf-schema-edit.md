@@ -4,7 +4,7 @@ Safely edit ACF field group JSON files by hand, following existing schema patter
 
 **Use when:** requests involve creating or modifying ACF field groups, adding new fields, building new page section layouts, or creating reusable components.
 
-**Paths:** see `skills/config.md`. All edits target `$ACF_JSON_DIR` (default: `acf-schema-deploy/wp-content/acf-json/`).
+**Paths:** see `skills/config.md`. When the global skill runs, all edits target `./wp-content/acf-json/` in the current repo.
 
 ## Required Inputs
 - What to add or change (new field, new layout, new component, etc.)

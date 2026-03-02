@@ -3,10 +3,11 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: push.sh --schema-repo <abs-path> [--dry-run] [--allow-field-key-changes] [--delete-missing] [--expected-hash <hash>]
+Usage: push.sh [--dry-run] [--allow-field-key-changes] [--delete-missing] [--expected-hash <hash>]
 
-Push local wp-content/acf-json/group_*.json to the WordPress plugin API.
+Push local ./wp-content/acf-json/group_*.json from the current repo to the WordPress plugin API.
 Validation is enforced server-side by the plugin.
+If TARGET_API_HMAC_SECRET or ACF_SCHEMA_API_HMAC_SECRET is set, signed headers are added automatically.
 EOF
 }
 
@@ -19,7 +20,6 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=./api-common.sh
 source "${SCRIPT_DIR}/api-common.sh"
 
-SCHEMA_REPO=""
 DRY_RUN=0
 ALLOW_FIELD_KEY_CHANGES=0
 DELETE_MISSING=0
@@ -27,11 +27,6 @@ EXPECTED_HASH=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --schema-repo)
-      [[ $# -ge 2 ]] || fail "Missing value for --schema-repo"
-      SCHEMA_REPO="$2"
-      shift 2
-      ;;
     --dry-run)
       DRY_RUN=1
       shift
@@ -59,18 +54,17 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-[[ -n "${SCHEMA_REPO}" ]] || fail "--schema-repo is required"
-[[ -d "${SCHEMA_REPO}" ]] || fail "Schema repo not found: ${SCHEMA_REPO}"
-
-local_acf_dir="${SCHEMA_REPO}/wp-content/acf-json"
-[[ -d "${local_acf_dir}" ]] || fail "Missing directory: ${local_acf_dir}"
+local_acf_dir="${ACF_JSON_DIR}"
+[[ -d "${local_acf_dir}" ]] || fail "Expected ACF schema at ${local_acf_dir}. Run this from the target repo root."
 
 require_command curl
 require_command jq
-require_command openssl
 
 echo "Loading workspace environment..."
 load_target_config
+if [[ -n "${TARGET_API_HMAC_SECRET:-}" ]]; then
+  require_command openssl
+fi
 
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "${tmp_dir}"' EXIT
@@ -100,7 +94,7 @@ fi
 
 payload_file="${tmp_dir}/push-request.json"
 response_raw="${tmp_dir}/push-response.raw.json"
-runtime_dir="${SCHEMA_REPO}/runtime"
+runtime_dir="${SCHEMA_DEPLOY_RUNTIME_DIR}"
 response_pretty="${runtime_dir}/schema-push-response.json"
 mkdir -p "${runtime_dir}"
 

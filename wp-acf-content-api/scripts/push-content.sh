@@ -88,7 +88,7 @@ is_allowed_resource_type "${RESOURCE_TYPE}" "${ALLOWED_RESOURCE_TYPES}" || fail 
 # Validate against field names (what REST API uses), not field keys.
 # --allowlist flag overrides; otherwise use the generated names file.
 if [[ -z "${ALLOWLIST_PATH}" ]]; then
-  ALLOWLIST_PATH="${SKILL_ROOT}/runtime/allowed-field-names.txt"
+  ALLOWLIST_PATH="${CONTENT_API_FIELD_NAMES_FILE}"
 fi
 [[ -f "${ALLOWLIST_PATH}" ]] || fail "Allowlist file not found: ${ALLOWLIST_PATH}. Run scripts/build-allowlist.sh first."
 [[ -s "${ALLOWLIST_PATH}" ]] || fail "Allowlist file is empty: ${ALLOWLIST_PATH}"
@@ -130,7 +130,7 @@ fi
 require_api_auth
 
 if [[ -z "${RESPONSE_OUT}" ]]; then
-  RESPONSE_OUT="${SKILL_ROOT}/runtime/push-${RESOURCE_TYPE}-${RESOURCE_ID}-response.json"
+  RESPONSE_OUT="${CONTENT_API_RUNTIME_DIR}/push-${RESOURCE_TYPE}-${RESOURCE_ID}-response.json"
 fi
 mkdir -p "$(dirname -- "${RESPONSE_OUT}")"
 

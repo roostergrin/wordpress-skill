@@ -72,10 +72,10 @@ fi
 is_allowed_resource_type "${RESOURCE_TYPE}" "${ALLOWED_RESOURCE_TYPES}" || fail "--resource-type '${RESOURCE_TYPE}' is not allowlisted (${ALLOWED_RESOURCE_TYPES})"
 
 if [[ -z "${OUT_PATH}" ]]; then
-  OUT_PATH="${SKILL_ROOT}/runtime/pull-${RESOURCE_TYPE}-${RESOURCE_ID}-raw.json"
+  OUT_PATH="${CONTENT_API_RUNTIME_DIR}/pull-${RESOURCE_TYPE}-${RESOURCE_ID}-raw.json"
 fi
 if [[ -z "${ACF_OUT_PATH}" ]]; then
-  ACF_OUT_PATH="${SKILL_ROOT}/runtime/pull-${RESOURCE_TYPE}-${RESOURCE_ID}-acf.json"
+  ACF_OUT_PATH="${CONTENT_API_RUNTIME_DIR}/pull-${RESOURCE_TYPE}-${RESOURCE_ID}-acf.json"
 fi
 
 mkdir -p "$(dirname -- "${OUT_PATH}")" "$(dirname -- "${ACF_OUT_PATH}")"

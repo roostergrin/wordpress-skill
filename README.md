@@ -2,6 +2,26 @@
 
 Claude Code skills for managing Advanced Custom Fields on a headless WordPress site. Three skills cover the full lifecycle: **schema editing**, **deployment**, and **content management**.
 
+The WordPress schema transport plugin now lives in a separate repository, `wp-acf-schema-api-plugin`. This repo no longer vendors the plugin source or zip artifact.
+
+## Global Install, Repo-Local Runtime
+
+Install these skills globally once. When they run, they should operate on the current repo, not on the skill install directory.
+
+Target repo contract:
+
+```text
+.
+├── .env
+├── runtime/
+│   ├── content-api/
+│   └── schema-deploy/
+└── wp-content/
+    └── acf-json/
+```
+
+Run the skill from the target repo root. The current working directory is treated as the workspace exactly as-is.
+
 ## Project Structure
 
 ```
@@ -23,8 +43,7 @@ Claude Code skills for managing Advanced Custom Fields on a headless WordPress s
 │   └── wp-content/acf-json/   # ACF field group JSON files (11 groups)
 └── wp-acf-content-api/        # Skill package: content API
     ├── SKILL.md               # Skill entrypoint
-    ├── scripts/               # build-allowlist, pull-content, push-content
-    └── runtime/               # Generated allowlists & pulled content
+    └── scripts/               # build-allowlist, pull-content, push-content
 ```
 
 ## Install in Codex
@@ -60,11 +79,11 @@ Restart Codex to pick up new skills.
 
 ### 1. Configure credentials
 
-All skill scripts load credentials from the workspace root `.env`.
+From the target repo root, create or update `.env`.
 
 ```bash
 cp .env.example .env
-# Edit with your WordPress URL, username, Application Password, and HMAC secret
+# Edit with your WordPress URL, username, and Application Password
 ```
 
 Minimum required values:
@@ -74,15 +93,19 @@ cat > .env <<'EOF'
 TARGET_BASE_URL="https://api-gordon-acf-demo.roostergrintemplates.com"
 WP_API_USER="your-user"
 WP_API_APP_PASSWORD="your-app-password"
-ACF_SCHEMA_API_HMAC_SECRET="your-hmac-secret"
 EOF
+```
+
+Optional for WordPress installs that explicitly re-enable signed schema pushes:
+
+```bash
+ACF_SCHEMA_API_HMAC_SECRET="your-hmac-secret"
 ```
 
 ### 2. Build the field allowlist
 
 ```bash
-cd wp-acf-content-api
-scripts/build-allowlist.sh --schema-repo /path/to/acf-schema-deploy
+scripts/build-allowlist.sh
 ```
 
 ### 3. Pull current page content
@@ -116,15 +139,15 @@ Edit ACF field group JSON files locally. Handles new fields, new layouts, new re
 
 ### Schema Deployment (`skills/acf-schema-deploy.md`)
 
-Pull and push schema JSON through the WordPress ACF Schema API plugin.
+Pull and push schema JSON through the WordPress ACF Schema API plugin. The plugin itself is maintained in the separate `wp-acf-schema-api-plugin` repository.
 
 | Command | Script |
 |---------|--------|
-| Pull schema | `scripts/pull.sh --schema-repo .` |
-| Push schema dry-run | `scripts/push.sh --schema-repo . --dry-run` |
-| Push schema apply | `scripts/push.sh --schema-repo .` |
-| Push with intentional key changes | `scripts/push.sh --schema-repo . --allow-field-key-changes` |
-| Backward-compatible alias | `scripts/deploy-main.sh --schema-repo .` |
+| Pull schema | `scripts/pull.sh` |
+| Push schema dry-run | `scripts/push.sh --dry-run` |
+| Push schema apply | `scripts/push.sh` |
+| Push with intentional key changes | `scripts/push.sh --allow-field-key-changes` |
+| Backward-compatible alias | `scripts/deploy-main.sh` |
 
 ### Content Management (`skills/wp-acf-content-api.md`)
 
@@ -132,11 +155,11 @@ Read and write ACF field values via the WordPress REST API. Uses Application Pas
 
 | Command | Script |
 |---------|--------|
-| Build field allowlist | `scripts/build-allowlist.sh --schema-repo <path>` |
+| Build field allowlist | `scripts/build-allowlist.sh` |
 | Pull page/post content | `scripts/pull-content.sh --resource-type pages --id <id>` |
 | Push content update | `scripts/push-content.sh --resource-type pages --id <id> --payload <file>` |
-| Run test suite (read-only) | `scripts/run-tests.sh --schema-repo <path> --id <id>` |
-| Run test suite (with writes) | `scripts/run-tests.sh --schema-repo <path> --id <id> --live` |
+| Run test suite (read-only) | `scripts/run-tests.sh --id <id>` |
+| Run test suite (with writes) | `scripts/run-tests.sh --id <id> --live` |
 
 ## Common Workflows
 
@@ -145,7 +168,6 @@ Read and write ACF field values via the WordPress REST API. Uses Application Pas
 Content API only — no schema changes needed.
 
 ```bash
-cd wp-acf-content-api
 scripts/pull-content.sh --resource-type pages --id 8    # See current values
 # Create payload.json with your changes
 scripts/push-content.sh --resource-type pages --id 8 --payload payload.json --dry-run
@@ -158,17 +180,15 @@ Full skill chain: edit → deploy → content.
 
 ```bash
 # 1. Edit schema JSON
-#    (modify acf-schema-deploy/wp-content/acf-json/group_62211673cd81a.json)
+#    (modify ./wp-content/acf-json/group_62211673cd81a.json)
 
 # 2. Pull + push schema
-cd acf-schema-deploy
-scripts/pull.sh --schema-repo .
-scripts/push.sh --schema-repo . --dry-run
-scripts/push.sh --schema-repo .
+scripts/pull.sh
+scripts/push.sh --dry-run
+scripts/push.sh
 
 # 3. Rebuild allowlist and push content
-cd ../wp-acf-content-api
-scripts/build-allowlist.sh --schema-repo /path/to/acf-schema-deploy
+scripts/build-allowlist.sh
 scripts/push-content.sh --resource-type pages --id 8 --payload payload.json
 ```
 
@@ -194,18 +214,17 @@ Read `skills/workflow.md` for the full process. In short:
 
 - **jq** — used by schema/content JSON tooling
 - **curl** — used by content API scripts
-- **Schema API plugin + credentials** — required for schema pull/push
+- **Schema API plugin repo deployed to WordPress + credentials** — required for schema pull/push
 - **WordPress Application Password** — required for content writes
 
 ## Testing
 
 ```bash
 # Read-only tests (safe, no writes)
-cd wp-acf-content-api
-scripts/run-tests.sh --schema-repo /path/to/acf-schema-deploy --id 8
+scripts/run-tests.sh --id 8
 
 # Full test suite with write + automatic rollback
-scripts/run-tests.sh --schema-repo /path/to/acf-schema-deploy --id 8 --live
+scripts/run-tests.sh --id 8 --live
 ```
 
 All deploy and content scripts support `--dry-run` and `--help`.

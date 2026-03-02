@@ -6,18 +6,18 @@
 
 ### Prerequisites
 - `jq` installed
-- `/Users/gordonlewis/wordpress-skill/.env` configured (including `WP_API_APP_PASSWORD`)
+- `./.env` configured in the current repo (including `WP_API_APP_PASSWORD`)
   OR `WP_API_APP_PASSWORD` exported in environment
-- Access to the ACF schema repo (local path)
+- Access to `./wp-content/acf-json/` in the current repo
 
 ### Usage
 
 ```bash
 # Read-only tests (safe, no writes to WordPress)
-scripts/run-tests.sh --schema-repo /ABS/PATH/TO/acf-schema-deploy --id 8
+scripts/run-tests.sh --id 8
 
 # Full suite including real write + automatic rollback
-scripts/run-tests.sh --schema-repo /ABS/PATH/TO/acf-schema-deploy --id 8 --live
+scripts/run-tests.sh --id 8 --live
 ```
 
 ### What each test covers
@@ -42,11 +42,11 @@ scripts/run-tests.sh --schema-repo /ABS/PATH/TO/acf-schema-deploy --id 8 --live
 ### Design notes
 - **Safe by default.** Tests 7-8 are skipped unless `--live` is passed.
 - **Automatic rollback.** Test 8 restores the original value snapshotted before test 7's write.
-- **Temp payloads.** All test payloads are written to `/tmp` and do not persist.
+- **Repo-local test payloads.** Test payloads are written under `./runtime/content-api/tests/`.
 - **Uses field names** (from `allowed-field-names.txt`), matching what the REST API expects.
 - **Auth test uses push** (test 9), because public pages can be read without auth via
   the view context fallback — the real safety concern is unauthorized writes.
-- **Password from workspace env.** The runner loads `WP_API_APP_PASSWORD` from `/Users/gordonlewis/wordpress-skill/.env`
+- **Password from workspace env.** The runner loads `WP_API_APP_PASSWORD` from `./.env`
   if not already set in environment.
 
 ## Offline testing (no credentials)
