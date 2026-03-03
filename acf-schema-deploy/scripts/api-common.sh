@@ -70,6 +70,7 @@ load_target_config() {
   local env_acf_schema_api_hmac_secret="${ACF_SCHEMA_API_HMAC_SECRET-}"
   local env_acf_automation_site_id="${ACF_AUTOMATION_SITE_ID-}"
   local env_acf_automation_secret="${ACF_AUTOMATION_SECRET-}"
+  local env_acf_auth_mode="${ACF_AUTH_MODE-}"
   local env_acf_automation_schema_pull_path="${ACF_AUTOMATION_SCHEMA_PULL_PATH-}"
   local env_acf_automation_schema_push_path="${ACF_AUTOMATION_SCHEMA_PUSH_PATH-}"
   local env_target_api_pull_path="${TARGET_API_PULL_PATH-}"
@@ -91,14 +92,34 @@ load_target_config() {
   TARGET_API_HMAC_SECRET="${env_target_api_hmac_secret:-${env_acf_schema_api_hmac_secret:-${TARGET_API_HMAC_SECRET:-${ACF_SCHEMA_API_HMAC_SECRET:-}}}}"
   ACF_AUTOMATION_SITE_ID="${env_acf_automation_site_id:-${ACF_AUTOMATION_SITE_ID:-}}"
   ACF_AUTOMATION_SECRET="${env_acf_automation_secret:-${ACF_AUTOMATION_SECRET:-}}"
+  ACF_AUTH_MODE="${env_acf_auth_mode:-${ACF_AUTH_MODE:-auto}}"
   ACF_AUTOMATION_SCHEMA_PULL_PATH="${env_acf_automation_schema_pull_path:-${ACF_AUTOMATION_SCHEMA_PULL_PATH:-/wp-json/acf-schema/v1/pull}}"
   ACF_AUTOMATION_SCHEMA_PUSH_PATH="${env_acf_automation_schema_push_path:-${ACF_AUTOMATION_SCHEMA_PUSH_PATH:-/wp-json/acf-schema/v1/push}}"
   TARGET_API_PULL_PATH="${env_target_api_pull_path:-${TARGET_API_PULL_PATH:-/wp-json/acf-schema/v1/pull}}"
   TARGET_API_PUSH_PATH="${env_target_api_push_path:-${TARGET_API_PUSH_PATH:-/wp-json/acf-schema/v1/push}}"
   TARGET_API_PUSH_ROUTE="${env_target_api_push_route:-${TARGET_API_PUSH_ROUTE:-/acf-schema/v1/push}}"
 
-  if [[ -n "${ACF_AUTOMATION_SITE_ID}" && -n "${ACF_AUTOMATION_SECRET}" ]]; then
-    AUTH_MODE="plugin_secret"
+  case "${ACF_AUTH_MODE}" in
+    auto)
+      if [[ -n "${ACF_AUTOMATION_SITE_ID}" && -n "${ACF_AUTOMATION_SECRET}" ]]; then
+        AUTH_MODE="plugin_secret"
+      else
+        AUTH_MODE="legacy"
+      fi
+      ;;
+    plugin_secret)
+      [[ -n "${ACF_AUTOMATION_SITE_ID}" && -n "${ACF_AUTOMATION_SECRET}" ]] || fail "ACF_AUTH_MODE=plugin_secret requires ACF_AUTOMATION_SITE_ID + ACF_AUTOMATION_SECRET in ${WORKSPACE_ENV_FILE}."
+      AUTH_MODE="plugin_secret"
+      ;;
+    legacy)
+      AUTH_MODE="legacy"
+      ;;
+    *)
+      fail "ACF_AUTH_MODE must be one of: auto, plugin_secret, legacy."
+      ;;
+  esac
+
+  if [[ "${AUTH_MODE}" == "plugin_secret" ]]; then
     TARGET_API_PULL_PATH="$(normalize_route_path "${ACF_AUTOMATION_SCHEMA_PULL_PATH}")"
     TARGET_API_PUSH_PATH="$(normalize_route_path "${ACF_AUTOMATION_SCHEMA_PUSH_PATH}")"
     TARGET_API_PUSH_ROUTE="${TARGET_API_PUSH_PATH#/wp-json}"
@@ -107,7 +128,6 @@ load_target_config() {
       -H "X-ACF-Automation-Secret: ${ACF_AUTOMATION_SECRET}"
     )
   else
-    AUTH_MODE="legacy"
     : "${TARGET_API_USER:?TARGET_API_USER (or WP_API_USER/WP_API_USERNAME) must be set in ${WORKSPACE_ENV_FILE} or environment}"
     : "${TARGET_API_APP_PASSWORD:?TARGET_API_APP_PASSWORD (or WP_API_APP_PASSWORD) must be set in ${WORKSPACE_ENV_FILE} or environment}"
     TARGET_API_PULL_PATH="$(normalize_route_path "${TARGET_API_PULL_PATH}")"
@@ -120,6 +140,7 @@ load_target_config() {
   PUSH_URL="${TARGET_BASE_URL}${TARGET_API_PUSH_PATH}"
 
   export AUTH_MODE
+  export ACF_AUTH_MODE
   export TARGET_BASE_URL
   export TARGET_CURL_TIMEOUT
   export TARGET_API_HMAC_SECRET

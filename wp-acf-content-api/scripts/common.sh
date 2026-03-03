@@ -72,6 +72,7 @@ load_api_config() {
   local env_wp_api_timeout_seconds="${WP_API_TIMEOUT_SECONDS-}"
   local env_default_resource_type="${DEFAULT_RESOURCE_TYPE-}"
   local env_allowed_resource_types="${ALLOWED_RESOURCE_TYPES-}"
+  local env_acf_auth_mode="${ACF_AUTH_MODE-}"
   local env_acf_field_allowlist_file="${ACF_FIELD_ALLOWLIST_FILE-}"
   local env_acf_field_name_allowlist_file="${ACF_FIELD_NAME_ALLOWLIST_FILE-}"
   local env_acf_automation_site_id="${ACF_AUTOMATION_SITE_ID-}"
@@ -94,20 +95,37 @@ load_api_config() {
   ACF_AUTOMATION_SITE_ID="${env_acf_automation_site_id:-${ACF_AUTOMATION_SITE_ID:-}}"
   ACF_AUTOMATION_SECRET="${env_acf_automation_secret:-${ACF_AUTOMATION_SECRET:-}}"
   ACF_AUTOMATION_CONTENT_BASE_PATH="${env_acf_automation_content_base_path:-${ACF_AUTOMATION_CONTENT_BASE_PATH:-/wp-json/acf-automation/v1/content}}"
+  ACF_AUTH_MODE="${env_acf_auth_mode:-${ACF_AUTH_MODE:-auto}}"
 
   : "${WP_API_BASE_URL:?WP_API_BASE_URL (or TARGET_BASE_URL) must be set in ${WORKSPACE_ENV_FILE} or environment}"
   WP_API_BASE_URL="$(normalize_base_url "${WP_API_BASE_URL}")"
   ACF_AUTOMATION_CONTENT_BASE_PATH="$(normalize_route_path "${ACF_AUTOMATION_CONTENT_BASE_PATH}")"
 
-  if [[ -n "${ACF_AUTOMATION_SITE_ID}" && -n "${ACF_AUTOMATION_SECRET}" ]]; then
-    AUTH_MODE="plugin_secret"
-  elif [[ -n "${WP_API_USERNAME}" && -n "${WP_API_APP_PASSWORD:-}" ]]; then
-    AUTH_MODE="legacy"
-  else
-    fail "Configure either ACF_AUTOMATION_SITE_ID + ACF_AUTOMATION_SECRET or WP_API_USERNAME + WP_API_APP_PASSWORD in ${WORKSPACE_ENV_FILE}."
-  fi
+  case "${ACF_AUTH_MODE}" in
+    auto)
+      if [[ -n "${ACF_AUTOMATION_SITE_ID}" && -n "${ACF_AUTOMATION_SECRET}" ]]; then
+        AUTH_MODE="plugin_secret"
+      elif [[ -n "${WP_API_USERNAME}" && -n "${WP_API_APP_PASSWORD:-}" ]]; then
+        AUTH_MODE="legacy"
+      else
+        fail "Configure either ACF_AUTOMATION_SITE_ID + ACF_AUTOMATION_SECRET or WP_API_USERNAME + WP_API_APP_PASSWORD in ${WORKSPACE_ENV_FILE}."
+      fi
+      ;;
+    plugin_secret)
+      [[ -n "${ACF_AUTOMATION_SITE_ID}" && -n "${ACF_AUTOMATION_SECRET}" ]] || fail "ACF_AUTH_MODE=plugin_secret requires ACF_AUTOMATION_SITE_ID + ACF_AUTOMATION_SECRET in ${WORKSPACE_ENV_FILE}."
+      AUTH_MODE="plugin_secret"
+      ;;
+    legacy)
+      [[ -n "${WP_API_USERNAME}" && -n "${WP_API_APP_PASSWORD:-}" ]] || fail "ACF_AUTH_MODE=legacy requires WP_API_USERNAME/WP_API_USER + WP_API_APP_PASSWORD in ${WORKSPACE_ENV_FILE}."
+      AUTH_MODE="legacy"
+      ;;
+    *)
+      fail "ACF_AUTH_MODE must be one of: auto, plugin_secret, legacy."
+      ;;
+  esac
 
   export AUTH_MODE
+  export ACF_AUTH_MODE
   export WP_API_BASE_URL
   export WP_API_USERNAME
   export WP_API_APP_PASSWORD
