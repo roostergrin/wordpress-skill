@@ -1,11 +1,12 @@
 # ACF WordPress Workflow
 
-This document connects the three ACF skills into a unified workflow. Read this when handling high-level requests like "build this page section" or "make this look like this design."
+This document connects the four ACF skills into a unified workflow. Read this when handling high-level requests like "build this page section" or "make this look like this design."
 
 ## Skill Chain
 
 | Step | Skill | What it does |
 |------|-------|-------------|
+| 0. Verify setup | `skills/wp-acf-preflight.md` | Confirm auth, schema pull/push, content pull, and dry-run/live verification |
 | 1. Edit schema | `skills/acf-schema-edit.md` | Create/modify ACF field group JSON locally |
 | 2. Deploy schema | `skills/acf-schema-deploy.md` | Pull/push schema JSON through WordPress plugin API |
 | 3. Update content | `skills/wp-acf-content-api.md` | Read/write field values via REST API |
@@ -64,6 +65,11 @@ Every layout above is built from these components via clone fields:
 ## Full Workflow: Screenshot to Live Page
 
 Given a design/screenshot, follow these steps:
+
+### Step 0: Verify the repo is ready
+- Read `skills/wp-acf-preflight.md`
+- Run preflight from the target repo root
+- Use `--live` before demos or first production use
 
 ### Step 1: Analyze the design
 - Identify each section/block in the layout

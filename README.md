@@ -1,6 +1,6 @@
 # ACF WordPress Skills
 
-Claude Code skills for managing Advanced Custom Fields on a headless WordPress site. Three skills cover the full lifecycle: **schema editing**, **deployment**, and **content management**.
+Claude Code skills for managing Advanced Custom Fields on a headless WordPress site. Four skills cover the full lifecycle: **preflight**, **schema editing**, **deployment**, and **content management**.
 
 The WordPress schema transport plugin now lives in a separate repository, `wp-acf-schema-api-plugin`. This repo no longer vendors the plugin source or zip artifact.
 
@@ -14,6 +14,7 @@ Target repo contract:
 .
 ├── .env
 ├── runtime/
+│   ├── preflight/
 │   ├── content-api/
 │   └── schema-deploy/
 └── wp-content/
@@ -30,10 +31,14 @@ Run the skill from the target repo root. The current working directory is treate
 ├── CLAUDE.md                  # Claude Code instructions (auto-loaded)
 ├── skills/                    # Skill definitions
 │   ├── workflow.md            # End-to-end workflow (design → live page)
+│   ├── wp-acf-preflight.md    # Verify setup/auth/schema/content readiness
 │   ├── acf-schema-edit.md     # Create/modify ACF field group JSON
 │   ├── acf-schema-deploy.md   # Pull/push schema JSON via WordPress plugin API
 │   ├── wp-acf-content-api.md  # Read/write field values via REST API
 │   └── config.md              # Path configuration reference
+├── wp-acf-preflight/          # Skill package: setup verification
+│   ├── SKILL.md               # Skill entrypoint
+│   └── scripts/               # preflight runner
 ├── acf-schema-edit/           # Skill package: schema editing
 │   ├── SKILL.md               # Skill entrypoint
 │   └── references/            # Schema editing references
@@ -57,7 +62,7 @@ using the built-in `skill-installer` script.
 python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py \
   --repo Gordoburrito/wordpress-skill \
   --ref main \
-  --path acf-schema-edit acf-schema-deploy wp-acf-content-api \
+  --path wp-acf-preflight acf-schema-edit acf-schema-deploy wp-acf-content-api \
   --method git
 ```
 
@@ -65,7 +70,7 @@ python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-githu
 
 ```bash
 # Replace <skill-path> with one of:
-# acf-schema-edit | acf-schema-deploy | wp-acf-content-api
+# wp-acf-preflight | acf-schema-edit | acf-schema-deploy | wp-acf-content-api
 python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py \
   --repo Gordoburrito/wordpress-skill \
   --ref main \
@@ -115,13 +120,25 @@ Alternative CLI bootstrap flow when the plugin exposes a claim token:
 scripts/bootstrap-repo.sh --claim-token <token>
 ```
 
-### 2. Build the field allowlist
+### 2. Run preflight
+
+```bash
+scripts/preflight.sh --id 8
+```
+
+Use `--live` when you want to verify real schema apply plus content write/rollback:
+
+```bash
+scripts/preflight.sh --id 8 --live
+```
+
+### 3. Build the field allowlist
 
 ```bash
 scripts/build-allowlist.sh
 ```
 
-### 3. Pull current page content
+### 4. Pull current page content
 
 ```bash
 scripts/pull-content.sh --resource-type pages --id 8
@@ -138,6 +155,16 @@ scripts/push-content.sh --resource-type pages --id 8 --payload payload.json
 ```
 
 ## Skills Reference
+
+### Preflight (`skills/wp-acf-preflight.md`)
+
+Verify that the repo, auth, schema API, and content API are ready before you start a recipe.
+
+| Command | Script |
+|---------|--------|
+| Safe preflight | `scripts/preflight.sh --id <id>` |
+| Full live verification | `scripts/preflight.sh --id <id> --live` |
+| Override live write field | `scripts/preflight.sh --id <id> --write-field <field-name>` |
 
 ### Schema Editing (`skills/acf-schema-edit.md`)
 
@@ -177,6 +204,15 @@ Read and write ACF field values via the WordPress REST API. Uses Application Pas
 | Run test suite (with writes) | `scripts/run-tests.sh --id <id> --live` |
 
 ## Common Workflows
+
+### Verify onboarding before a demo
+
+Run preflight first. This confirms auth, schema pull/push, allowlist generation, content pull, and optional live write/rollback.
+
+```bash
+scripts/preflight.sh --id 8
+scripts/preflight.sh --id 8 --live
+```
 
 ### Update text on an existing page
 
@@ -222,6 +258,7 @@ Read `skills/workflow.md` for the full process. In short:
 - **Field names vs field keys**: The REST API uses human-readable names (`seo`, `sections`), not internal keys (`field_abc123`).
 - **Three-tier architecture**: Tier 1 = reusable components (`_Content`, `_Image`, etc.), Tier 2 = page builders with flexible content, Tier 3 = global/meta settings.
 - **Flexible content**: The entire `sections` array must be sent on every update — no partial updates. Every object needs `acf_fc_layout`.
+- **Preflight first**: Use `wp-acf-preflight` to confirm the repo, plugin auth, schema endpoints, and content endpoints are all working before a demo or first edit.
 - **Plugin-managed automation secrets**: Preferred when the plugin is installed and claimed. Local scripts use repo-local automation credentials first, then fall back to WordPress Application Passwords.
 - **Application Passwords**: Still supported as a fallback for REST/API writes and bootstrap.
 - **GET/POST mismatch**: ACF returns `false` for empty fields, but rejects it on POST. Fix before pushing: `false` → `""` for select fields, `false` → `[]` for arrays.
@@ -230,6 +267,7 @@ Read `skills/workflow.md` for the full process. In short:
 
 - **jq** — used by schema/content JSON tooling
 - **curl** — used by content API scripts
+- **A verification page/post ID** — recommended for preflight and content tests
 - **Schema API plugin repo deployed to WordPress + credentials** — required for schema pull/push
 - **WordPress Application Password** — required for content writes
 

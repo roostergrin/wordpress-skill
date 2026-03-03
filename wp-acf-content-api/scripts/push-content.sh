@@ -166,15 +166,22 @@ fi
 jq -e '.acf | type=="object"' "${tmp_response}" >/dev/null || fail "Response does not contain an ACF object."
 
 missing_any=0
+mismatch_any=0
 while IFS= read -r key; do
   [[ -n "${key}" ]] || continue
   if ! jq -e --arg k "${key}" '.acf | has($k)' "${tmp_response}" >/dev/null; then
     echo "Missing updated key in response: ${key}" >&2
     missing_any=1
+    continue
+  fi
+
+  if ! jq -e --arg k "${key}" --slurpfile payload "${PAYLOAD_PATH}" '.acf[$k] == $payload[0].acf[$k]' "${tmp_response}" >/dev/null; then
+    echo "Updated key did not round-trip with the requested value: ${key}" >&2
+    mismatch_any=1
   fi
 done < "${tmp_payload_keys}"
 
-if [[ "${missing_any}" -ne 0 ]]; then
+if [[ "${missing_any}" -ne 0 || "${mismatch_any}" -ne 0 ]]; then
   rm -f "${tmp_payload_keys}" "${tmp_allowlist}" "${tmp_invalid}" "${tmp_response}"
   fail "Update response failed verification."
 fi
