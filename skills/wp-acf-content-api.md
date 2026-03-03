@@ -58,6 +58,7 @@ fall back to Application Passwords only when those keys are absent.
    `scripts/push-content.sh --resource-type pages --id 8 --payload <file> --dry-run`
 7. Execute real update:
    `scripts/push-content.sh --resource-type pages --id 8 --payload <file>`
+8. Review the timestamped diff in `./runtime/diffs/` (generated automatically on successful push).
 
 ## Payload Formatting Rules
 

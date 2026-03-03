@@ -131,6 +131,20 @@ fi
 
 require_api_auth
 
+# Pull current ACF content as "before" state for diff
+tmp_before_acf="$(mktemp)"
+before_url="$(build_resource_url "${RESOURCE_TYPE}" "${RESOURCE_ID}")"
+if [[ "${AUTH_MODE}" != "plugin_secret" ]]; then
+  before_url="${before_url}?context=edit"
+fi
+curl -sS --fail --show-error \
+  --connect-timeout "${WP_API_TIMEOUT_SECONDS}" \
+  --max-time "${WP_API_TIMEOUT_SECONDS}" \
+  "${CURL_AUTH_ARGS[@]}" \
+  -H "Accept: application/json" \
+  "${before_url}" 2>/dev/null \
+  | jq -S '.acf // {}' > "${tmp_before_acf}" || true
+
 if [[ -z "${RESPONSE_OUT}" ]]; then
   RESPONSE_OUT="${CONTENT_API_RUNTIME_DIR}/push-${RESOURCE_TYPE}-${RESOURCE_ID}-response.json"
 fi
@@ -191,3 +205,16 @@ rm -f "${tmp_payload_keys}" "${tmp_allowlist}" "${tmp_invalid}"
 
 echo "Update applied successfully."
 echo "Response written to: ${RESPONSE_OUT}"
+
+# Generate before/after diff
+tmp_after_acf="$(mktemp)"
+jq -S '.acf // {}' "${RESPONSE_OUT}" > "${tmp_after_acf}"
+
+timestamp="$(date +%Y%m%d-%H%M%S)"
+diff_file="${DIFFS_RUNTIME_DIR}/content-push-${RESOURCE_TYPE}-${RESOURCE_ID}-${timestamp}.diff"
+mkdir -p "${DIFFS_RUNTIME_DIR}"
+if diff -u --label "before" --label "after" "${tmp_before_acf}" "${tmp_after_acf}" > "${diff_file}" 2>&1; then
+  echo "# No content changes detected." > "${diff_file}"
+fi
+rm -f "${tmp_before_acf}" "${tmp_after_acf}"
+echo "diff=${diff_file}"

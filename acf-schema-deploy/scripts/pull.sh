@@ -96,6 +96,14 @@ if [[ "${DRY_RUN}" -eq 1 ]]; then
   exit 0
 fi
 
+# Snapshot existing local files as "before" state for diff
+diff_before_dir="${tmp_dir}/diff-before"
+diff_after_dir="${tmp_dir}/diff-after"
+mkdir -p "${diff_before_dir}" "${diff_after_dir}"
+while IFS= read -r bf; do
+  [[ -n "${bf}" ]] && jq -S '.' "${bf}" > "${diff_before_dir}/$(basename "${bf}")"
+done < <(find "${local_acf_dir}" -maxdepth 1 -type f -name 'group_*.json' 2>/dev/null | sort)
+
 for group_key in "${group_keys[@]}"; do
   [[ -n "${group_key}" ]] || continue
   target_file="${local_acf_dir}/${group_key}.json"
@@ -122,3 +130,16 @@ if [[ "${ACTIVE_ONLY}" -eq 1 ]]; then
   echo "mode=active-only"
 fi
 echo "response=${response_pretty}"
+
+# Generate before/after diff
+while IFS= read -r af; do
+  [[ -n "${af}" ]] && jq -S '.' "${af}" > "${diff_after_dir}/$(basename "${af}")"
+done < <(find "${local_acf_dir}" -maxdepth 1 -type f -name 'group_*.json' | sort)
+
+timestamp="$(date +%Y%m%d-%H%M%S)"
+diff_file="${DIFFS_RUNTIME_DIR}/schema-pull-${timestamp}.diff"
+mkdir -p "${DIFFS_RUNTIME_DIR}"
+if diff -ruN "${diff_before_dir}" "${diff_after_dir}" > "${diff_file}" 2>&1; then
+  echo "# No schema changes detected." > "${diff_file}"
+fi
+echo "diff=${diff_file}"

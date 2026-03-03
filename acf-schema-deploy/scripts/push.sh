@@ -83,14 +83,26 @@ done
 field_groups_file="${tmp_dir}/field-groups.json"
 jq -s '.' "${group_files[@]}" > "${field_groups_file}"
 
+# Pull current server state for hash resolution and diff baseline
+pull_payload="${tmp_dir}/pull-request.json"
+pull_response="${tmp_dir}/pull-response.raw.json"
+jq -n '{include_groups: true}' > "${pull_payload}"
+api_post_json "${PULL_URL}" "${pull_payload}" "${pull_response}"
+
 if [[ -z "${EXPECTED_HASH}" ]]; then
-  pull_payload="${tmp_dir}/pull-hash-request.json"
-  pull_response="${tmp_dir}/pull-hash-response.raw.json"
-  jq -n '{include_groups: false}' > "${pull_payload}"
-  api_post_json "${PULL_URL}" "${pull_payload}" "${pull_response}"
   EXPECTED_HASH="$(jq -r '.schema_hash // empty' "${pull_response}")"
   [[ -n "${EXPECTED_HASH}" ]] || fail "Unable to resolve expected_hash from pull endpoint."
 fi
+
+# Snapshot server-side schema as "before" state for diff
+diff_before_dir="${tmp_dir}/diff-before"
+diff_after_dir="${tmp_dir}/diff-after"
+mkdir -p "${diff_before_dir}" "${diff_after_dir}"
+while IFS= read -r gk; do
+  [[ -n "${gk}" ]] || continue
+  jq -S --arg gk "${gk}" '.field_groups[] | select(.key == $gk)' "${pull_response}" \
+    > "${diff_before_dir}/${gk}.json"
+done < <(jq -r '.field_groups[]? | .key // empty' "${pull_response}" | sort)
 
 payload_file="${tmp_dir}/push-request.json"
 response_raw="${tmp_dir}/push-response.raw.json"
@@ -169,3 +181,16 @@ if [[ "${DELETE_MISSING}" -eq 1 ]]; then
 fi
 echo "schema_hash_after=${schema_hash_after}"
 echo "response=${response_pretty}"
+
+# Generate before/after diff
+for file in "${group_files[@]}"; do
+  jq -S '.' "${file}" > "${diff_after_dir}/$(basename "${file}")"
+done
+
+timestamp="$(date +%Y%m%d-%H%M%S)"
+diff_file="${DIFFS_RUNTIME_DIR}/schema-push-${timestamp}.diff"
+mkdir -p "${DIFFS_RUNTIME_DIR}"
+if diff -ruN "${diff_before_dir}" "${diff_after_dir}" > "${diff_file}" 2>&1; then
+  echo "# No schema changes detected." > "${diff_file}"
+fi
+echo "diff=${diff_file}"

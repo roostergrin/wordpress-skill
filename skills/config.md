@@ -13,6 +13,7 @@ They do not use the skill install directory as the workspace.
 | `./runtime/content-api/` | Generated allowlists, pulled content snapshots, push responses, and test payloads |
 | `./runtime/schema-deploy/` | Generated schema pull/push API responses |
 | `./runtime/bootstrap/` | Claim/bootstrap responses and setup verification logs |
+| `./runtime/diffs/` | Timestamped before/after diff files for schema and content updates |
 
 ## Rules
 

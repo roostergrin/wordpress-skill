@@ -65,6 +65,8 @@ Validation now runs in the plugin API:
 4. Push dry-run: `scripts/push.sh --dry-run`
 5. Push apply: `scripts/push.sh`
 
+Both `pull.sh` and `push.sh` automatically generate a timestamped diff file in `./runtime/diffs/` showing schema before and after the operation. The diff path is printed as the last output line (e.g. `diff=runtime/diffs/schema-push-20260303-143022.diff`).
+
 ## References
 - `acf-schema-deploy/references/bootstrap.md`
 - `acf-schema-deploy/references/github-actions-main.yml`
