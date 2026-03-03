@@ -11,6 +11,7 @@ They do not use the skill install directory as the workspace.
 | `./wp-content/acf-json/` | Canonical ACF schema JSON used for editing, deploy, and allowlist generation |
 | `./runtime/content-api/` | Generated allowlists, pulled content snapshots, push responses, and test payloads |
 | `./runtime/schema-deploy/` | Generated schema pull/push API responses |
+| `./runtime/bootstrap/` | Claim/bootstrap responses and setup verification logs |
 
 ## Rules
 
@@ -19,3 +20,5 @@ They do not use the skill install directory as the workspace.
 - `acf-schema-edit` works against `./wp-content/acf-json/`.
 - `acf-schema-deploy` reads `./.env`, writes schema JSON into `./wp-content/acf-json/`, and stores API logs under `./runtime/schema-deploy/`.
 - `wp-acf-content-api` reads `./.env`, builds allowlists from `./wp-content/acf-json/`, and stores artifacts under `./runtime/content-api/`.
+- If `ACF_AUTOMATION_SITE_ID` + `ACF_AUTOMATION_SECRET` are present, both skills use plugin-secret auth first.
+- Otherwise they fall back to `WP_API_USER` + `WP_API_APP_PASSWORD`.

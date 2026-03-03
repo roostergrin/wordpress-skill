@@ -27,6 +27,12 @@ WP_API_APP_PASSWORD="your-app-password"
 EOF
 ```
 
+Preferred once the plugin exposes a claim token:
+
+```bash
+scripts/bootstrap-repo.sh --claim-token <token>
+```
+
 Optional for sites that explicitly enable `acf_schema_api_require_signed_push`:
 
 ```bash

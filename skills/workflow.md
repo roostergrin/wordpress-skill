@@ -78,12 +78,15 @@ Given a design/screenshot, follow these steps:
 ### Step 3: Deploy to WordPress
 - Read `skills/acf-schema-deploy.md`
 - Run from the target repo root
+- Bootstrap repo-local automation auth once per site if needed:
+  `scripts/bootstrap-repo.sh --claim-token <token>`
 - Pull baseline if needed: `scripts/pull.sh`
 - Dry-run push: `scripts/push.sh --dry-run`
 - Apply push: `scripts/push.sh`
 
 ### Step 4: Populate content
 - Read `skills/wp-acf-content-api.md`
+- Build the local field allowlist from `./wp-content/acf-json/`
 - Pull current page content to see structure
 - Build payload with field **names** (not keys)
 - Dry-run, then push

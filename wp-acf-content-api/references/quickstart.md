@@ -6,10 +6,16 @@ Create or update the repo-local env file:
 cp .env.example .env
 ```
 
+Preferred when the plugin exposes a claim token:
+```bash
+scripts/bootstrap-repo.sh --claim-token <token>
+```
+
 Edit `./.env`:
 - `TARGET_BASE_URL` — your WordPress site URL
 - `WP_API_USER` — WordPress username
 - `WP_API_APP_PASSWORD` — WordPress Application Password (not regular password)
+- `ACF_AUTOMATION_SITE_ID` / `ACF_AUTOMATION_SECRET` — preferred plugin-managed auth once the repo has been claimed
 - `ALLOWED_RESOURCE_TYPES` — comma-separated endpoint types (default: `pages,posts`)
 
 The `.env` file is gitignored. Alternatively, set `WP_API_APP_PASSWORD` as an environment variable:

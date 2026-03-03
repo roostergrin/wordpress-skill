@@ -79,7 +79,7 @@ Restart Codex to pick up new skills.
 
 ### 1. Configure credentials
 
-From the target repo root, create or update `.env`.
+From the target repo root, either bootstrap automation from a claim token or create/update `.env` manually.
 
 ```bash
 cp .env.example .env
@@ -100,6 +100,12 @@ Optional for WordPress installs that explicitly re-enable signed schema pushes:
 
 ```bash
 ACF_SCHEMA_API_HMAC_SECRET="your-hmac-secret"
+```
+
+Preferred bootstrap flow when the plugin exposes a claim token:
+
+```bash
+scripts/bootstrap-repo.sh --claim-token <token>
 ```
 
 ### 2. Build the field allowlist
@@ -148,6 +154,8 @@ Pull and push schema JSON through the WordPress ACF Schema API plugin. The plugi
 | Push schema apply | `scripts/push.sh` |
 | Push with intentional key changes | `scripts/push.sh --allow-field-key-changes` |
 | Backward-compatible alias | `scripts/deploy-main.sh` |
+| Bootstrap repo from claim token | `scripts/bootstrap-repo.sh --claim-token <token>` |
+| Deploy plugin over SSH | `scripts/deploy-plugin-ssh.sh` |
 
 ### Content Management (`skills/wp-acf-content-api.md`)
 
@@ -207,7 +215,8 @@ Read `skills/workflow.md` for the full process. In short:
 - **Field names vs field keys**: The REST API uses human-readable names (`seo`, `sections`), not internal keys (`field_abc123`).
 - **Three-tier architecture**: Tier 1 = reusable components (`_Content`, `_Image`, etc.), Tier 2 = page builders with flexible content, Tier 3 = global/meta settings.
 - **Flexible content**: The entire `sections` array must be sent on every update — no partial updates. Every object needs `acf_fc_layout`.
-- **Application Passwords**: Required for REST API writes. Regular WordPress passwords won't work.
+- **Plugin-managed automation secrets**: Preferred when the plugin is installed and claimed. Local scripts use repo-local automation credentials first, then fall back to WordPress Application Passwords.
+- **Application Passwords**: Still supported as a fallback for REST/API writes and bootstrap.
 - **GET/POST mismatch**: ACF returns `false` for empty fields, but rejects it on POST. Fix before pushing: `false` → `""` for select fields, `false` → `[]` for arrays.
 
 ## Prerequisites

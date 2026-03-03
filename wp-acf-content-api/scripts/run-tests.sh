@@ -40,13 +40,16 @@ done
 [[ -n "${PAGE_ID}" ]]     || { echo "ERROR: --id is required" >&2; exit 1; }
 
 # Load workspace .env if password is not already in environment
-if [[ -z "${WP_API_APP_PASSWORD:-}" ]]; then
+if [[ -z "${WP_API_APP_PASSWORD:-}" && ( -z "${ACF_AUTOMATION_SITE_ID:-}" || -z "${ACF_AUTOMATION_SECRET:-}" ) ]]; then
   if [[ -f "${WORKSPACE_ENV_FILE}" ]]; then
     # shellcheck disable=SC1090
     source "${WORKSPACE_ENV_FILE}"
   fi
 fi
-[[ -n "${WP_API_APP_PASSWORD:-}" ]] || { echo "ERROR: WP_API_APP_PASSWORD must be set in ${WORKSPACE_ENV_FILE} or environment" >&2; exit 1; }
+if [[ -z "${WP_API_APP_PASSWORD:-}" && ( -z "${ACF_AUTOMATION_SITE_ID:-}" || -z "${ACF_AUTOMATION_SECRET:-}" ) ]]; then
+  echo "ERROR: Configure either ACF_AUTOMATION_SITE_ID + ACF_AUTOMATION_SECRET or WP_API_APP_PASSWORD in ${WORKSPACE_ENV_FILE} or environment" >&2
+  exit 1
+fi
 
 TEST_RUNTIME_DIR="${CONTENT_API_RUNTIME_DIR}/tests"
 mkdir -p "${TEST_RUNTIME_DIR}"
@@ -250,13 +253,23 @@ echo "=== Test 9: Auth failure (safety) ==="
 AUTH_TEST_PAYLOAD="$(mktemp "${TEST_RUNTIME_DIR}/auth-test.XXXXXX.json")"
 jq -n --arg k "${FIELD_NAME}" --arg v "auth-test" '{acf:{($k):$v}}' > "${AUTH_TEST_PAYLOAD}"
 
-# Push with wrong password — should fail at the curl/server level
-if WP_API_APP_PASSWORD="wrong-password" bash "${SKILL_ROOT}/scripts/push-content.sh" \
-     --resource-type pages --id "${PAGE_ID}" \
-     --payload "${AUTH_TEST_PAYLOAD}" 2>/dev/null; then
-  fail "bad password should fail but push succeeded"
+# Push with wrong credential — should fail at the curl/server level
+if [[ -n "${ACF_AUTOMATION_SITE_ID:-}" && -n "${ACF_AUTOMATION_SECRET:-}" ]]; then
+  if ACF_AUTOMATION_SECRET="wrong-secret" bash "${SKILL_ROOT}/scripts/push-content.sh" \
+       --resource-type pages --id "${PAGE_ID}" \
+       --payload "${AUTH_TEST_PAYLOAD}" 2>/dev/null; then
+    fail "bad automation secret should fail but push succeeded"
+  else
+    pass "bad automation secret correctly rejected on push"
+  fi
 else
-  pass "bad password correctly rejected on push"
+  if WP_API_APP_PASSWORD="wrong-password" bash "${SKILL_ROOT}/scripts/push-content.sh" \
+       --resource-type pages --id "${PAGE_ID}" \
+       --payload "${AUTH_TEST_PAYLOAD}" 2>/dev/null; then
+    fail "bad password should fail but push succeeded"
+  else
+    pass "bad password correctly rejected on push"
+  fi
 fi
 
 # ─── Summary ────────────────────────────────────────────────

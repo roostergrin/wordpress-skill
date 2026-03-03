@@ -10,6 +10,7 @@ Assumes the standalone `wp-acf-schema-api-plugin` repository is already installe
 ## Required Inputs
 - Schema change to deploy, or request to pull latest schema.
 - Confirmation this is for the single `main` backend.
+- For bootstrap setup: a one-time claim token or claim URL from the WordPress plugin.
 
 ## Hard Guardrails
 - Edit only `wp-content/acf-json/**` inside the schema repo.
@@ -22,6 +23,9 @@ Assumes the standalone `wp-acf-schema-api-plugin` repository is already installe
 ## Quick Start
 ```bash
 # Run from the target repo root.
+
+# Preferred: bootstrap once from a claim token exposed by the plugin
+scripts/bootstrap-repo.sh --claim-token <token>
 
 # Pull from WordPress
 scripts/pull.sh
@@ -42,6 +46,8 @@ scripts/push.sh --allow-field-key-changes
 | `scripts/pull.sh` | Pull schema from WordPress API into local `wp-content/acf-json/` |
 | `scripts/push.sh` | Push local `group_*.json` to WordPress API |
 | `scripts/deploy-main.sh` | Backward-compatible alias to `push.sh` |
+| `scripts/bootstrap-repo.sh` | Claim a plugin-managed automation secret and write repo-local `.env` keys |
+| `scripts/deploy-plugin-ssh.sh` | Build and upload the WordPress plugin over SSH using repo-local target config |
 
 Validation now runs in the plugin API:
 - payload structure checks

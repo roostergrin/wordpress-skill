@@ -119,12 +119,14 @@ fi
 url="$(build_resource_url "${RESOURCE_TYPE}" "${RESOURCE_ID}")"
 
 if [[ "${DRY_RUN}" -eq 1 ]]; then
-  echo "Dry-run validation passed."
-  echo "Would POST to: ${url}"
-  echo "ACF fields:"
-  sed 's/^/  - /' "${tmp_payload_keys}"
-  rm -f "${tmp_payload_keys}" "${tmp_allowlist}" "${tmp_invalid}"
-  exit 0
+  if [[ "${AUTH_MODE}" != "plugin_secret" ]]; then
+    echo "Dry-run validation passed."
+    echo "Would POST to: ${url}"
+    echo "ACF fields:"
+    sed 's/^/  - /' "${tmp_payload_keys}"
+    rm -f "${tmp_payload_keys}" "${tmp_allowlist}" "${tmp_invalid}"
+    exit 0
+  fi
 fi
 
 require_api_auth
@@ -136,6 +138,10 @@ mkdir -p "$(dirname -- "${RESPONSE_OUT}")"
 
 tmp_response="$(mktemp)"
 
+if [[ "${DRY_RUN}" -eq 1 ]]; then
+  url="${url}?dry_run=1"
+fi
+
 echo "Posting update to ${url}"
 curl -sS --fail --show-error \
   --connect-timeout "${WP_API_TIMEOUT_SECONDS}" \
@@ -146,6 +152,16 @@ curl -sS --fail --show-error \
   -X POST \
   --data-binary "@${PAYLOAD_PATH}" \
   "${url}" > "${tmp_response}"
+
+if [[ "${DRY_RUN}" -eq 1 ]]; then
+  jq -e '.dry_run == true and (.requested_fields | type=="array")' "${tmp_response}" >/dev/null \
+    || fail "Dry-run response did not include expected plugin dry-run fields."
+  mv "${tmp_response}" "${RESPONSE_OUT}"
+  rm -f "${tmp_payload_keys}" "${tmp_allowlist}" "${tmp_invalid}"
+  echo "Plugin dry-run accepted."
+  echo "Response written to: ${RESPONSE_OUT}"
+  exit 0
+fi
 
 jq -e '.acf | type=="object"' "${tmp_response}" >/dev/null || fail "Response does not contain an ACF object."
 

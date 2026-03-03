@@ -83,18 +83,7 @@ mkdir -p "$(dirname -- "${OUT_PATH}")" "$(dirname -- "${ACF_OUT_PATH}")"
 base_url="$(build_resource_url "${RESOURCE_TYPE}" "${RESOURCE_ID}")"
 tmp_response="$(mktemp)"
 
-# Try context=edit first (returns raw/unrendered values, needs edit_post cap).
-# Fall back to view context if the user/app-password lacks edit permissions.
-url="${base_url}?context=edit"
-echo "Fetching ${url}"
-if ! curl -sS --fail --show-error \
-  --connect-timeout "${WP_API_TIMEOUT_SECONDS}" \
-  --max-time "${WP_API_TIMEOUT_SECONDS}" \
-  "${CURL_AUTH_ARGS[@]}" \
-  -H "Accept: application/json" \
-  "${url}" > "${tmp_response}" 2>/dev/null; then
-
-  echo "context=edit returned 401 — falling back to view context."
+if [[ "${AUTH_MODE}" == "plugin_secret" ]]; then
   url="${base_url}"
   echo "Fetching ${url}"
   curl -sS --fail --show-error \
@@ -103,6 +92,28 @@ if ! curl -sS --fail --show-error \
     "${CURL_AUTH_ARGS[@]}" \
     -H "Accept: application/json" \
     "${url}" > "${tmp_response}"
+else
+  # Try context=edit first (returns raw/unrendered values, needs edit_post cap).
+  # Fall back to view context if the user/app-password lacks edit permissions.
+  url="${base_url}?context=edit"
+  echo "Fetching ${url}"
+  if ! curl -sS --fail --show-error \
+    --connect-timeout "${WP_API_TIMEOUT_SECONDS}" \
+    --max-time "${WP_API_TIMEOUT_SECONDS}" \
+    "${CURL_AUTH_ARGS[@]}" \
+    -H "Accept: application/json" \
+    "${url}" > "${tmp_response}" 2>/dev/null; then
+
+    echo "context=edit returned 401 — falling back to view context."
+    url="${base_url}"
+    echo "Fetching ${url}"
+    curl -sS --fail --show-error \
+      --connect-timeout "${WP_API_TIMEOUT_SECONDS}" \
+      --max-time "${WP_API_TIMEOUT_SECONDS}" \
+      "${CURL_AUTH_ARGS[@]}" \
+      -H "Accept: application/json" \
+      "${url}" > "${tmp_response}"
+  fi
 fi
 
 jq -e 'type=="object"' "${tmp_response}" >/dev/null || fail "Response is not a JSON object."

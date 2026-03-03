@@ -8,6 +8,7 @@ WORKSPACE_ENV_FILE="${WORKSPACE_ROOT}/.env"
 WORKSPACE_RUNTIME_DIR="${WORKSPACE_ROOT}/runtime"
 SCHEMA_DEPLOY_RUNTIME_DIR="${WORKSPACE_RUNTIME_DIR}/schema-deploy"
 ACF_JSON_DIR="${WORKSPACE_ROOT}/wp-content/acf-json"
+BOOTSTRAP_RUNTIME_DIR="${WORKSPACE_RUNTIME_DIR}/bootstrap"
 
 export SKILL_ROOT
 export WORKSPACE_ROOT
@@ -15,6 +16,7 @@ export WORKSPACE_ENV_FILE
 export WORKSPACE_RUNTIME_DIR
 export SCHEMA_DEPLOY_RUNTIME_DIR
 export ACF_JSON_DIR
+export BOOTSTRAP_RUNTIME_DIR
 
 fail() {
   echo "ERROR: $*" >&2
@@ -40,6 +42,16 @@ json_pretty_write() {
   jq '.' "${src}" > "${dest}"
 }
 
+normalize_route_path() {
+  local value="$1"
+  [[ -n "${value}" ]] || fail "Route path cannot be empty."
+  if [[ "${value}" != /* ]]; then
+    value="/${value}"
+  fi
+  value="${value%/}"
+  printf '%s' "${value}"
+}
+
 load_target_config() {
   if [[ -f "${WORKSPACE_ENV_FILE}" ]]; then
     # shellcheck disable=SC1090
@@ -49,21 +61,52 @@ load_target_config() {
   TARGET_BASE_URL="${TARGET_BASE_URL:-${WP_API_BASE_URL:-}}"
   : "${TARGET_BASE_URL:?TARGET_BASE_URL (or WP_API_BASE_URL) must be set in ${WORKSPACE_ENV_FILE} or environment}"
 
+  TARGET_BASE_URL="${TARGET_BASE_URL%/}"
+  TARGET_CURL_TIMEOUT="${TARGET_CURL_TIMEOUT:-30}"
   TARGET_API_USER="${TARGET_API_USER:-${WP_API_USER:-${WP_API_USERNAME:-}}}"
   TARGET_API_APP_PASSWORD="${TARGET_API_APP_PASSWORD:-${WP_API_APP_PASSWORD:-}}"
-  : "${TARGET_API_USER:?TARGET_API_USER (or WP_API_USER/WP_API_USERNAME) must be set in ${WORKSPACE_ENV_FILE} or environment}"
-  : "${TARGET_API_APP_PASSWORD:?TARGET_API_APP_PASSWORD (or WP_API_APP_PASSWORD) must be set in ${WORKSPACE_ENV_FILE} or environment}"
-
-  TARGET_BASE_URL="${TARGET_BASE_URL%/}"
+  TARGET_API_HMAC_SECRET="${TARGET_API_HMAC_SECRET:-${ACF_SCHEMA_API_HMAC_SECRET:-}}"
+  ACF_AUTOMATION_SITE_ID="${ACF_AUTOMATION_SITE_ID:-}"
+  ACF_AUTOMATION_SECRET="${ACF_AUTOMATION_SECRET:-}"
+  ACF_AUTOMATION_SCHEMA_PULL_PATH="${ACF_AUTOMATION_SCHEMA_PULL_PATH:-/wp-json/acf-schema/v1/pull}"
+  ACF_AUTOMATION_SCHEMA_PUSH_PATH="${ACF_AUTOMATION_SCHEMA_PUSH_PATH:-/wp-json/acf-schema/v1/push}"
   TARGET_API_PULL_PATH="${TARGET_API_PULL_PATH:-/wp-json/acf-schema/v1/pull}"
   TARGET_API_PUSH_PATH="${TARGET_API_PUSH_PATH:-/wp-json/acf-schema/v1/push}"
   TARGET_API_PUSH_ROUTE="${TARGET_API_PUSH_ROUTE:-/acf-schema/v1/push}"
-  TARGET_CURL_TIMEOUT="${TARGET_CURL_TIMEOUT:-30}"
-  TARGET_API_HMAC_SECRET="${TARGET_API_HMAC_SECRET:-${ACF_SCHEMA_API_HMAC_SECRET:-}}"
+
+  if [[ -n "${ACF_AUTOMATION_SITE_ID}" && -n "${ACF_AUTOMATION_SECRET}" ]]; then
+    AUTH_MODE="plugin_secret"
+    TARGET_API_PULL_PATH="$(normalize_route_path "${ACF_AUTOMATION_SCHEMA_PULL_PATH}")"
+    TARGET_API_PUSH_PATH="$(normalize_route_path "${ACF_AUTOMATION_SCHEMA_PUSH_PATH}")"
+    TARGET_API_PUSH_ROUTE="${TARGET_API_PUSH_PATH#/wp-json}"
+    API_CURL_AUTH_ARGS=(
+      -H "X-ACF-Automation-Site: ${ACF_AUTOMATION_SITE_ID}"
+      -H "X-ACF-Automation-Secret: ${ACF_AUTOMATION_SECRET}"
+    )
+  else
+    AUTH_MODE="legacy"
+    : "${TARGET_API_USER:?TARGET_API_USER (or WP_API_USER/WP_API_USERNAME) must be set in ${WORKSPACE_ENV_FILE} or environment}"
+    : "${TARGET_API_APP_PASSWORD:?TARGET_API_APP_PASSWORD (or WP_API_APP_PASSWORD) must be set in ${WORKSPACE_ENV_FILE} or environment}"
+    TARGET_API_PULL_PATH="$(normalize_route_path "${TARGET_API_PULL_PATH}")"
+    TARGET_API_PUSH_PATH="$(normalize_route_path "${TARGET_API_PUSH_PATH}")"
+    TARGET_API_PUSH_ROUTE="$(normalize_route_path "${TARGET_API_PUSH_ROUTE}")"
+    API_CURL_AUTH_ARGS=(--user "${TARGET_API_USER}:${TARGET_API_APP_PASSWORD}")
+  fi
 
   PULL_URL="${TARGET_BASE_URL}${TARGET_API_PULL_PATH}"
   PUSH_URL="${TARGET_BASE_URL}${TARGET_API_PUSH_PATH}"
-  API_AUTH="${TARGET_API_USER}:${TARGET_API_APP_PASSWORD}"
+
+  export AUTH_MODE
+  export TARGET_BASE_URL
+  export TARGET_CURL_TIMEOUT
+  export TARGET_API_HMAC_SECRET
+  export TARGET_API_PULL_PATH
+  export TARGET_API_PUSH_PATH
+  export TARGET_API_PUSH_ROUTE
+  export ACF_AUTOMATION_SITE_ID
+  export ACF_AUTOMATION_SECRET
+  export ACF_AUTOMATION_SCHEMA_PULL_PATH
+  export ACF_AUTOMATION_SCHEMA_PUSH_PATH
 }
 
 render_api_error() {
@@ -106,7 +149,7 @@ api_post_json() {
   http_code="$(curl -sS --show-error \
     --connect-timeout "${TARGET_CURL_TIMEOUT}" \
     --max-time "${TARGET_CURL_TIMEOUT}" \
-    --user "${API_AUTH}" \
+    "${API_CURL_AUTH_ARGS[@]}" \
     -H "Content-Type: application/json" \
     "$@" \
     -X POST \

@@ -6,8 +6,9 @@
 
 ### Prerequisites
 - `jq` installed
-- `./.env` configured in the current repo (including `WP_API_APP_PASSWORD`)
-  OR `WP_API_APP_PASSWORD` exported in environment
+- `./.env` configured in the current repo with either:
+  - `ACF_AUTOMATION_SITE_ID` + `ACF_AUTOMATION_SECRET`
+  - or `WP_API_APP_PASSWORD` plus the matching username variable
 - Access to `./wp-content/acf-json/` in the current repo
 
 ### Usage
@@ -33,7 +34,7 @@ scripts/run-tests.sh --id 8 --live
 | 6b | Extra top-level keys in payload rejected | No | No |
 | 7 | Real write + re-pull verification | Yes | Yes |
 | 8 | Rollback to original value | Yes | Yes |
-| 9 | Wrong password rejected on push attempt | No | No |
+| 9 | Wrong legacy password or wrong plugin secret rejected on write path | No | No |
 
 ### Exit codes
 - `0` — all tests passed (skips are OK)
@@ -46,13 +47,13 @@ scripts/run-tests.sh --id 8 --live
 - **Uses field names** (from `allowed-field-names.txt`), matching what the REST API expects.
 - **Auth test uses push** (test 9), because public pages can be read without auth via
   the view context fallback — the real safety concern is unauthorized writes.
-- **Password from workspace env.** The runner loads `WP_API_APP_PASSWORD` from `./.env`
-  if not already set in environment.
+- **Auth from workspace env.** The runner prefers plugin-secret auth from `./.env`
+  and falls back to `WP_API_APP_PASSWORD` if the automation vars are absent.
 
 ## Offline testing (no credentials)
 
 Several safety tests work without real WordPress credentials by passing a
-dummy value for `WP_API_APP_PASSWORD`:
+dummy value for `WP_API_APP_PASSWORD` when you are testing the legacy path:
 
 ```bash
 export WP_API_APP_PASSWORD="dummy"
@@ -90,9 +91,10 @@ Tested and confirmed working:
 | `{"acf":{}}` (empty) | push --dry-run | Rejected: "no ACF keys to update" |
 | `{"acf":{...},"title":"x"}` | push --dry-run | Rejected: "only an 'acf' object" |
 | Name not in allowlist | push --dry-run | Rejected: "outside allowlist" |
-| Missing `WP_API_APP_PASSWORD` | pull / push | Rejected: "required in .env or environment" |
-| Wrong password on push | push | Rejected: curl 401 |
-| Wrong password on pull | pull | Falls back to public view context (expected) |
+| Missing auth vars | pull / push | Rejected: setup/auth error |
+| Wrong legacy password on push | push | Rejected: curl 401 |
+| Wrong plugin secret on push | push | Rejected: curl 401 |
+| Wrong password on pull | pull | Legacy mode falls back to public view context (expected) |
 
 ## Lessons learned
 

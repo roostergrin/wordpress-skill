@@ -29,6 +29,9 @@ Validation, duplicate checks, and field-key stability checks are enforced server
 ```bash
 # Run from the target repo root.
 
+# 0) Preferred one-time setup: claim a plugin-managed automation secret
+scripts/bootstrap-repo.sh --claim-token <token>
+
 # 1) Pull latest schema from WordPress
 scripts/pull.sh
 
@@ -50,8 +53,14 @@ Set root-level env in:
 
 Required values:
 - `TARGET_BASE_URL` (or `WP_API_BASE_URL`)
-- `WP_API_USER` (or `WP_API_USERNAME` / `TARGET_API_USER`)
-- `WP_API_APP_PASSWORD` (or `TARGET_API_APP_PASSWORD`)
+- Preferred bootstrap-managed auth:
+  - `ACF_AUTOMATION_SITE_ID`
+  - `ACF_AUTOMATION_SECRET`
+  - `ACF_AUTOMATION_SCHEMA_PULL_PATH`
+  - `ACF_AUTOMATION_SCHEMA_PUSH_PATH`
+- Legacy fallback auth:
+  - `WP_API_USER` (or `WP_API_USERNAME` / `TARGET_API_USER`)
+  - `WP_API_APP_PASSWORD` (or `TARGET_API_APP_PASSWORD`)
 
 Optional for sites that explicitly require signed pushes:
 - `ACF_SCHEMA_API_HMAC_SECRET` (or `TARGET_API_HMAC_SECRET`)
@@ -61,14 +70,17 @@ Optional for sites that explicitly require signed pushes:
 |--------|---------|
 | `scripts/pull.sh` | Pull schema from `/wp-json/acf-schema/v1/pull` and write local `group_*.json` files |
 | `scripts/push.sh` | Push local schema to `/wp-json/acf-schema/v1/push` |
+| `scripts/bootstrap-repo.sh` | Claim a one-time plugin token and write repo-local automation auth into `./.env` |
+| `scripts/deploy-plugin-ssh.sh` | Build and upload the WordPress plugin to the configured target over SSH |
 | `scripts/deploy-main.sh` | Backward-compatible alias to `scripts/push.sh` |
 
 ## Workflow Detail
-1. Pull latest schema: `scripts/pull.sh`
-2. Apply local edits under `./wp-content/acf-json/**`.
-3. Review diff in Git.
-4. Run push dry-run: `scripts/push.sh --dry-run`
-5. Apply push: `scripts/push.sh`
+1. Bootstrap once per site: `scripts/bootstrap-repo.sh --claim-token <token>`
+2. Pull latest schema: `scripts/pull.sh`
+3. Apply local edits under `./wp-content/acf-json/**`.
+4. Review diff in Git.
+5. Run push dry-run: `scripts/push.sh --dry-run`
+6. Apply push: `scripts/push.sh`
 
 ## References
 - `references/bootstrap.md`: plugin/API bootstrap and config.

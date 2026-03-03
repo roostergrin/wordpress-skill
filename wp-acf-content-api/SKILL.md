@@ -15,9 +15,14 @@ Treat the current working directory as the target repo root. Never use the skill
 - Out of scope: ACF schema edits, plugin/theme code changes, database shell commands.
 
 ## Required Inputs
-- WordPress API base URL and username (from workspace `.env`)
-- `WP_API_APP_PASSWORD` — WordPress **Application Password** (not regular login password).
-  Set in `./.env` in the current repo or as an environment variable.
+- WordPress API base URL from workspace `.env`
+- Preferred repo-local bootstrap auth:
+  - `ACF_AUTOMATION_SITE_ID`
+  - `ACF_AUTOMATION_SECRET`
+  - `ACF_AUTOMATION_CONTENT_BASE_PATH`
+- Legacy fallback:
+  - `WP_API_USER` / `WP_API_USERNAME`
+  - `WP_API_APP_PASSWORD` — WordPress **Application Password** (not regular login password)
 - Resource type (`pages`, `posts`, or configured allowlisted type)
 - Resource ID
 - Payload file for updates
@@ -30,8 +35,18 @@ in the `acf` payload — NOT internal field keys (`field_abc123`).
 - `push-content.sh` validates payloads against **field names**
 - Always pull first to see the exact field structure before building a payload
 
+## Authentication Modes
+Preferred mode is plugin-managed bootstrap auth claimed into the current repo with:
+
+```bash
+../acf-schema-deploy/scripts/bootstrap-repo.sh --claim-token <token>
+```
+
+If the automation secret is present, the content scripts use the plugin-owned content routes.
+If not, they fall back to native WordPress REST API writes with an Application Password.
+
 ## Application Passwords
-WordPress REST API writes require Application Passwords (WP 5.6+), not regular login passwords.
+Legacy mode uses WordPress Application Passwords (WP 5.6+), not regular login passwords.
 Regular passwords may authenticate for reads but **will not grant write access**.
 
 Create one: WP Admin > Users > Profile > Application Passwords.
@@ -121,7 +136,9 @@ scripts/run-tests.sh --id <page-id>
 # Full suite including real write + automatic rollback
 scripts/run-tests.sh --id <page-id> --live
 ```
-Safety validation tests also work offline with a dummy password. See `references/testing.md`.
+The runner prefers plugin-secret auth when bootstrap vars are present and falls back to
+Application Password auth otherwise. Safety validation tests also work offline with a
+dummy password. See `references/testing.md`.
 
 ## References
 - `references/quickstart.md`: setup and command examples.
