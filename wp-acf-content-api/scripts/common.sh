@@ -61,21 +61,37 @@ is_allowed_resource_type() {
 }
 
 load_api_config() {
+  local env_target_base_url="${TARGET_BASE_URL-}"
+  local env_wp_api_base_url="${WP_API_BASE_URL-}"
+  local env_wp_api_username="${WP_API_USERNAME-}"
+  local env_wp_api_user="${WP_API_USER-}"
+  local env_target_api_user="${TARGET_API_USER-}"
+  local env_wp_api_app_password="${WP_API_APP_PASSWORD-}"
+  local env_wp_api_timeout_seconds="${WP_API_TIMEOUT_SECONDS-}"
+  local env_default_resource_type="${DEFAULT_RESOURCE_TYPE-}"
+  local env_allowed_resource_types="${ALLOWED_RESOURCE_TYPES-}"
+  local env_acf_field_allowlist_file="${ACF_FIELD_ALLOWLIST_FILE-}"
+  local env_acf_field_name_allowlist_file="${ACF_FIELD_NAME_ALLOWLIST_FILE-}"
+  local env_acf_automation_site_id="${ACF_AUTOMATION_SITE_ID-}"
+  local env_acf_automation_secret="${ACF_AUTOMATION_SECRET-}"
+  local env_acf_automation_content_base_path="${ACF_AUTOMATION_CONTENT_BASE_PATH-}"
+
   if [[ -f "${WORKSPACE_ENV_FILE}" ]]; then
     # shellcheck disable=SC1090
     source "${WORKSPACE_ENV_FILE}"
   fi
 
-  WP_API_BASE_URL="${WP_API_BASE_URL:-${TARGET_BASE_URL:-}}"
-  WP_API_USERNAME="${WP_API_USERNAME:-${WP_API_USER:-${TARGET_API_USER:-}}}"
-  WP_API_TIMEOUT_SECONDS="${WP_API_TIMEOUT_SECONDS:-30}"
-  DEFAULT_RESOURCE_TYPE="${DEFAULT_RESOURCE_TYPE:-pages}"
-  ALLOWED_RESOURCE_TYPES="${ALLOWED_RESOURCE_TYPES:-pages,posts}"
-  ACF_FIELD_ALLOWLIST_FILE="${ACF_FIELD_ALLOWLIST_FILE:-${CONTENT_API_FIELD_KEYS_FILE}}"
-  ACF_FIELD_NAME_ALLOWLIST_FILE="${ACF_FIELD_NAME_ALLOWLIST_FILE:-${CONTENT_API_FIELD_NAMES_FILE}}"
-  ACF_AUTOMATION_SITE_ID="${ACF_AUTOMATION_SITE_ID:-}"
-  ACF_AUTOMATION_SECRET="${ACF_AUTOMATION_SECRET:-}"
-  ACF_AUTOMATION_CONTENT_BASE_PATH="${ACF_AUTOMATION_CONTENT_BASE_PATH:-/wp-json/acf-automation/v1/content}"
+  WP_API_BASE_URL="${env_wp_api_base_url:-${env_target_base_url:-${WP_API_BASE_URL:-${TARGET_BASE_URL:-}}}}"
+  WP_API_USERNAME="${env_wp_api_username:-${env_wp_api_user:-${env_target_api_user:-${WP_API_USERNAME:-${WP_API_USER:-${TARGET_API_USER:-}}}}}}"
+  WP_API_APP_PASSWORD="${env_wp_api_app_password:-${WP_API_APP_PASSWORD:-}}"
+  WP_API_TIMEOUT_SECONDS="${env_wp_api_timeout_seconds:-${WP_API_TIMEOUT_SECONDS:-30}}"
+  DEFAULT_RESOURCE_TYPE="${env_default_resource_type:-${DEFAULT_RESOURCE_TYPE:-pages}}"
+  ALLOWED_RESOURCE_TYPES="${env_allowed_resource_types:-${ALLOWED_RESOURCE_TYPES:-pages,posts}}"
+  ACF_FIELD_ALLOWLIST_FILE="${env_acf_field_allowlist_file:-${ACF_FIELD_ALLOWLIST_FILE:-${CONTENT_API_FIELD_KEYS_FILE}}}"
+  ACF_FIELD_NAME_ALLOWLIST_FILE="${env_acf_field_name_allowlist_file:-${ACF_FIELD_NAME_ALLOWLIST_FILE:-${CONTENT_API_FIELD_NAMES_FILE}}}"
+  ACF_AUTOMATION_SITE_ID="${env_acf_automation_site_id:-${ACF_AUTOMATION_SITE_ID:-}}"
+  ACF_AUTOMATION_SECRET="${env_acf_automation_secret:-${ACF_AUTOMATION_SECRET:-}}"
+  ACF_AUTOMATION_CONTENT_BASE_PATH="${env_acf_automation_content_base_path:-${ACF_AUTOMATION_CONTENT_BASE_PATH:-/wp-json/acf-automation/v1/content}}"
 
   : "${WP_API_BASE_URL:?WP_API_BASE_URL (or TARGET_BASE_URL) must be set in ${WORKSPACE_ENV_FILE} or environment}"
   WP_API_BASE_URL="$(normalize_base_url "${WP_API_BASE_URL}")"
@@ -92,6 +108,7 @@ load_api_config() {
   export AUTH_MODE
   export WP_API_BASE_URL
   export WP_API_USERNAME
+  export WP_API_APP_PASSWORD
   export WP_API_TIMEOUT_SECONDS
   export DEFAULT_RESOURCE_TYPE
   export ALLOWED_RESOURCE_TYPES

@@ -18,6 +18,9 @@ export SCHEMA_DEPLOY_RUNTIME_DIR
 export ACF_JSON_DIR
 export BOOTSTRAP_RUNTIME_DIR
 
+API_CURL_AUTH_ARGS=()
+PUSH_SIGNATURE_HEADERS=()
+
 fail() {
   echo "ERROR: $*" >&2
   exit 1
@@ -53,26 +56,44 @@ normalize_route_path() {
 }
 
 load_target_config() {
+  local env_target_base_url="${TARGET_BASE_URL-}"
+  local env_wp_api_base_url="${WP_API_BASE_URL-}"
+  local env_target_curl_timeout="${TARGET_CURL_TIMEOUT-}"
+  local env_target_api_user="${TARGET_API_USER-}"
+  local env_wp_api_user="${WP_API_USER-}"
+  local env_wp_api_username="${WP_API_USERNAME-}"
+  local env_target_api_app_password="${TARGET_API_APP_PASSWORD-}"
+  local env_wp_api_app_password="${WP_API_APP_PASSWORD-}"
+  local env_target_api_hmac_secret="${TARGET_API_HMAC_SECRET-}"
+  local env_acf_schema_api_hmac_secret="${ACF_SCHEMA_API_HMAC_SECRET-}"
+  local env_acf_automation_site_id="${ACF_AUTOMATION_SITE_ID-}"
+  local env_acf_automation_secret="${ACF_AUTOMATION_SECRET-}"
+  local env_acf_automation_schema_pull_path="${ACF_AUTOMATION_SCHEMA_PULL_PATH-}"
+  local env_acf_automation_schema_push_path="${ACF_AUTOMATION_SCHEMA_PUSH_PATH-}"
+  local env_target_api_pull_path="${TARGET_API_PULL_PATH-}"
+  local env_target_api_push_path="${TARGET_API_PUSH_PATH-}"
+  local env_target_api_push_route="${TARGET_API_PUSH_ROUTE-}"
+
   if [[ -f "${WORKSPACE_ENV_FILE}" ]]; then
     # shellcheck disable=SC1090
     source "${WORKSPACE_ENV_FILE}"
   fi
 
-  TARGET_BASE_URL="${TARGET_BASE_URL:-${WP_API_BASE_URL:-}}"
+  TARGET_BASE_URL="${env_target_base_url:-${env_wp_api_base_url:-${TARGET_BASE_URL:-${WP_API_BASE_URL:-}}}}"
   : "${TARGET_BASE_URL:?TARGET_BASE_URL (or WP_API_BASE_URL) must be set in ${WORKSPACE_ENV_FILE} or environment}"
 
   TARGET_BASE_URL="${TARGET_BASE_URL%/}"
-  TARGET_CURL_TIMEOUT="${TARGET_CURL_TIMEOUT:-30}"
-  TARGET_API_USER="${TARGET_API_USER:-${WP_API_USER:-${WP_API_USERNAME:-}}}"
-  TARGET_API_APP_PASSWORD="${TARGET_API_APP_PASSWORD:-${WP_API_APP_PASSWORD:-}}"
-  TARGET_API_HMAC_SECRET="${TARGET_API_HMAC_SECRET:-${ACF_SCHEMA_API_HMAC_SECRET:-}}"
-  ACF_AUTOMATION_SITE_ID="${ACF_AUTOMATION_SITE_ID:-}"
-  ACF_AUTOMATION_SECRET="${ACF_AUTOMATION_SECRET:-}"
-  ACF_AUTOMATION_SCHEMA_PULL_PATH="${ACF_AUTOMATION_SCHEMA_PULL_PATH:-/wp-json/acf-schema/v1/pull}"
-  ACF_AUTOMATION_SCHEMA_PUSH_PATH="${ACF_AUTOMATION_SCHEMA_PUSH_PATH:-/wp-json/acf-schema/v1/push}"
-  TARGET_API_PULL_PATH="${TARGET_API_PULL_PATH:-/wp-json/acf-schema/v1/pull}"
-  TARGET_API_PUSH_PATH="${TARGET_API_PUSH_PATH:-/wp-json/acf-schema/v1/push}"
-  TARGET_API_PUSH_ROUTE="${TARGET_API_PUSH_ROUTE:-/acf-schema/v1/push}"
+  TARGET_CURL_TIMEOUT="${env_target_curl_timeout:-${TARGET_CURL_TIMEOUT:-30}}"
+  TARGET_API_USER="${env_target_api_user:-${env_wp_api_user:-${env_wp_api_username:-${TARGET_API_USER:-${WP_API_USER:-${WP_API_USERNAME:-}}}}}}"
+  TARGET_API_APP_PASSWORD="${env_target_api_app_password:-${env_wp_api_app_password:-${TARGET_API_APP_PASSWORD:-${WP_API_APP_PASSWORD:-}}}}"
+  TARGET_API_HMAC_SECRET="${env_target_api_hmac_secret:-${env_acf_schema_api_hmac_secret:-${TARGET_API_HMAC_SECRET:-${ACF_SCHEMA_API_HMAC_SECRET:-}}}}"
+  ACF_AUTOMATION_SITE_ID="${env_acf_automation_site_id:-${ACF_AUTOMATION_SITE_ID:-}}"
+  ACF_AUTOMATION_SECRET="${env_acf_automation_secret:-${ACF_AUTOMATION_SECRET:-}}"
+  ACF_AUTOMATION_SCHEMA_PULL_PATH="${env_acf_automation_schema_pull_path:-${ACF_AUTOMATION_SCHEMA_PULL_PATH:-/wp-json/acf-schema/v1/pull}}"
+  ACF_AUTOMATION_SCHEMA_PUSH_PATH="${env_acf_automation_schema_push_path:-${ACF_AUTOMATION_SCHEMA_PUSH_PATH:-/wp-json/acf-schema/v1/push}}"
+  TARGET_API_PULL_PATH="${env_target_api_pull_path:-${TARGET_API_PULL_PATH:-/wp-json/acf-schema/v1/pull}}"
+  TARGET_API_PUSH_PATH="${env_target_api_push_path:-${TARGET_API_PUSH_PATH:-/wp-json/acf-schema/v1/push}}"
+  TARGET_API_PUSH_ROUTE="${env_target_api_push_route:-${TARGET_API_PUSH_ROUTE:-/acf-schema/v1/push}}"
 
   if [[ -n "${ACF_AUTOMATION_SITE_ID}" && -n "${ACF_AUTOMATION_SECRET}" ]]; then
     AUTH_MODE="plugin_secret"

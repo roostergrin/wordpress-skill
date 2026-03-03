@@ -132,7 +132,11 @@ jq -n \
 
 build_push_signature_headers "${payload_file}"
 echo "Calling push endpoint: ${PUSH_URL}"
-api_post_json "${PUSH_URL}" "${payload_file}" "${response_raw}" "${PUSH_SIGNATURE_HEADERS[@]}"
+if [[ -n "${TARGET_API_HMAC_SECRET:-}" ]]; then
+  api_post_json "${PUSH_URL}" "${payload_file}" "${response_raw}" "${PUSH_SIGNATURE_HEADERS[@]}"
+else
+  api_post_json "${PUSH_URL}" "${payload_file}" "${response_raw}"
+fi
 json_pretty_write "${response_raw}" "${response_pretty}"
 
 jq -e '.plan and .current_hash and .incoming_hash' "${response_raw}" >/dev/null \
