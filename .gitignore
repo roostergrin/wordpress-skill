@@ -2,3 +2,4 @@
 .env.bak
 runtime/
 tmp/
+wp-content/acf-json/group_*.json
