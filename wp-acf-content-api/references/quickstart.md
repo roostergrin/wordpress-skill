@@ -1,63 +1,62 @@
 # Quickstart
 
-## 1) Configure API target
-Create or update the repo-local env file:
+## 1) Configure the target workspace
+
+Create or update the resolved env file:
+
 ```bash
 cp .env.example .env
 ```
 
 Preferred when the plugin exposes a claim token:
-```bash
-scripts/bootstrap-repo.sh --claim-token <token>
-```
-
-Edit `./.env`:
-- `TARGET_BASE_URL` — your WordPress site URL
-- `WP_API_USER` — WordPress username
-- `WP_API_APP_PASSWORD` — WordPress Application Password (not regular password)
-- `ACF_AUTOMATION_SITE_ID` / `ACF_AUTOMATION_SECRET` — preferred plugin-managed auth once the repo has been claimed
-- `ALLOWED_RESOURCE_TYPES` — comma-separated endpoint types (default: `pages,posts`)
-
-The `.env` file is gitignored. Alternatively, set `WP_API_APP_PASSWORD` as an environment variable:
-```bash
-export WP_API_APP_PASSWORD='xxxx xxxx xxxx xxxx xxxx xxxx'
-```
-
-### Creating an Application Password
-Regular WordPress passwords do not work for REST API writes.
-1. WP Admin > Users > Your Profile
-2. Scroll to "Application Passwords"
-3. Enter a name, click "Add New Application Password"
-4. Copy the generated password (format: `xxxx xxxx xxxx xxxx xxxx xxxx`)
-
-## 2) Generate field-name allowlist from trusted schema
 
 ```bash
-scripts/build-allowlist.sh
+wp-acf schema bootstrap --claim-token <token>
 ```
 
-Outputs:
-- `runtime/content-api/allowed-field-names.txt` — used by push-content.sh for validation
-- `runtime/content-api/allowed-field-keys.txt` — internal field keys for reference
+Minimum env values:
 
-Regenerate after any schema changes.
+- `TARGET_BASE_URL`
+- `WP_API_USER`
+- `WP_API_APP_PASSWORD`
+- optional plugin-managed auth:
+  - `ACF_AUTOMATION_SITE_ID`
+  - `ACF_AUTOMATION_SECRET`
+  - `ACF_AUTOMATION_CONTENT_BASE_PATH`
+- `ALLOWED_RESOURCE_TYPES` defaults to `pages,posts`
 
-## 3) Pull current content snapshot
+If you are running from another current working directory:
 
 ```bash
-scripts/pull-content.sh --resource-type pages --id 8
+export ACF_WORKSPACE_ROOT="/abs/path/to/project"
+export ACF_JSON_DIR="/abs/path/to/project/wp-content/acf-json"
 ```
 
-Outputs:
-- `runtime/content-api/pull-pages-8-raw.json` — full API response
-- `runtime/content-api/pull-pages-8-acf.json` — extracted ACF object only
+## 2) Generate the field-name allowlist
 
-The pull script tries `context=edit` first (returns raw values, needs edit capability)
-and falls back to view context if the user lacks permissions.
+```bash
+wp-acf content allowlist
+```
 
-## 4) Create update payload
+Default outputs:
 
-Payload must contain only the `acf` object. Use **field names** (not field keys):
+- `tmp/wp-acf/content-api/allowed-field-names.txt`
+- `tmp/wp-acf/content-api/allowed-field-keys.txt`
+
+## 3) Pull current content
+
+```bash
+wp-acf content pull --resource-type pages --id 8
+```
+
+Default outputs:
+
+- `tmp/wp-acf/content-api/pull-pages-8-raw.json`
+- `tmp/wp-acf/content-api/pull-pages-8-acf.json`
+
+## 4) Build a payload
+
+Use field names, not field keys:
 
 ```json
 {
@@ -70,26 +69,21 @@ Payload must contain only the `acf` object. Use **field names** (not field keys)
 }
 ```
 
-Partial updates are supported — only include fields you want to change.
-
-See `references/acf-rest-api-field-guide.md` for formatting rules per field type.
-
-## 5) Validate with dry-run
+## 5) Dry-run the write
 
 ```bash
-scripts/push-content.sh --resource-type pages --id 8 --payload /ABS/PATH/payload.json --dry-run
+wp-acf content push --resource-type pages --id 8 --payload /ABS/PATH/payload.json --dry-run
 ```
 
-## 6) Apply update
+## 6) Apply the write
 
 ```bash
-scripts/push-content.sh --resource-type pages --id 8 --payload /ABS/PATH/payload.json
+wp-acf content push --resource-type pages --id 8 --payload /ABS/PATH/payload.json
 ```
 
 ## 7) Verify
 
 ```bash
-scripts/pull-content.sh --resource-type pages --id 8
-# Check the updated field:
-jq '.seo.page_title' runtime/content-api/pull-pages-8-acf.json
+wp-acf content pull --resource-type pages --id 8
+jq '.seo.page_title' tmp/wp-acf/content-api/pull-pages-8-acf.json
 ```

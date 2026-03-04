@@ -1,0 +1,734 @@
+{
+  "ID": 270,
+  "key": "group_63448e846a361",
+  "title": "Page Sections",
+  "fields": [
+    {
+      "key": "field_63448e84673d6",
+      "label": "Page Sections",
+      "name": "page_sections",
+      "aria-label": "",
+      "type": "flexible_content",
+      "instructions": "",
+      "required": 0,
+      "conditional_logic": 0,
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
+      "button_label": "Add Section",
+      "min": "",
+      "max": "",
+      "layouts": {
+        "layout_68acf804488e8": {
+          "key": "layout_68acf804488e8",
+          "name": "hero",
+          "label": "Hero",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_638655758453e_field_68b08ebb6a5d7",
+              "label": "Image",
+              "name": "image",
+              "aria-label": "",
+              "type": "image",
+              "instructions": "",
+              "required": 0,
+              "conditional_logic": 0,
+              "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+              },
+              "return_format": "array",
+              "preview_size": "medium",
+              "library": "all",
+              "mime_types": ""
+            },
+            {
+              "key": "field_28c602cf7a6a7",
+              "label": "Object Position",
+              "name": "object_position",
+              "aria-label": "",
+              "type": "text",
+              "instructions": "",
+              "required": 0,
+              "conditional_logic": 0,
+              "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+              },
+              "default_value": "center center"
+            },
+            {
+              "key": "field_68acf874488f1_field_6377f7f3b578c",
+              "label": "Content",
+              "name": "content",
+              "aria-label": "",
+              "type": "clone",
+              "instructions": "",
+              "required": 0,
+              "conditional_logic": 0,
+              "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+              },
+              "clone": [
+                "group_6377f7f384a4c"
+              ],
+              "display": "seamless",
+              "layout": "block",
+              "prefix_label": 0,
+              "prefix_name": 0
+            },
+            {
+              "key": "field_68b09b0cec811",
+              "label": "Options",
+              "name": "options",
+              "aria-label": "",
+              "type": "clone",
+              "instructions": "",
+              "required": 0,
+              "conditional_logic": 0,
+              "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+              },
+              "clone": [
+                "group_63894140af6e3"
+              ],
+              "display": "seamless",
+              "layout": "block",
+              "prefix_label": 0,
+              "prefix_name": 0
+            }
+          ],
+          "min": "",
+          "max": ""
+        },
+        "layout_5c34bbdf7d3d6": {
+          "key": "layout_5c34bbdf7d3d6",
+          "name": "intro",
+          "label": "Intro",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_75a91e6b4db90",
+              "label": "Content",
+              "name": "content",
+              "aria-label": "",
+              "type": "clone",
+              "instructions": "",
+              "required": 0,
+              "conditional_logic": 0,
+              "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+              },
+              "clone": [
+                "group_6377f7f384a4c"
+              ],
+              "display": "seamless",
+              "layout": "block",
+              "prefix_label": 0,
+              "prefix_name": 0
+            },
+            {
+              "key": "field_3a2b17f477c08",
+              "label": "Add Additional Text",
+              "name": "add_additional_text",
+              "aria-label": "",
+              "type": "true_false",
+              "instructions": "",
+              "required": 0,
+              "conditional_logic": 0,
+              "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+              },
+              "message": "",
+              "default_value": 0,
+              "ui": 0,
+              "ui_on_text": "",
+              "ui_off_text": ""
+            },
+            {
+              "key": "field_bef39257a70e2",
+              "label": "Button",
+              "name": "button",
+              "aria-label": "",
+              "type": "clone",
+              "instructions": "",
+              "required": 0,
+              "conditional_logic": 0,
+              "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+              },
+              "clone": [
+                "group_6377f23bd0d95"
+              ],
+              "display": "seamless",
+              "layout": "block",
+              "prefix_label": 0,
+              "prefix_name": 0
+            },
+            {
+              "key": "field_70526ca7c1e2e",
+              "label": "Instructions",
+              "name": "instructions",
+              "aria-label": "",
+              "type": "textarea",
+              "instructions": "",
+              "required": 0,
+              "conditional_logic": [
+                [
+                  {
+                    "field": "field_3a2b17f477c08",
+                    "operator": "==",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+              },
+              "default_value": "",
+              "rows": 4,
+              "new_lines": ""
+            },
+            {
+              "key": "field_b2b2e42a46fba",
+              "label": "Component Options",
+              "name": "component_options",
+              "aria-label": "",
+              "type": "clone",
+              "instructions": "",
+              "required": 0,
+              "conditional_logic": 0,
+              "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+              },
+              "clone": [
+                "group_63894140af6e3"
+              ],
+              "display": "seamless",
+              "layout": "block",
+              "prefix_label": 0,
+              "prefix_name": 0
+            }
+          ],
+          "min": "",
+          "max": ""
+        },
+        "layout_ed30a2ce28f24": {
+          "key": "layout_ed30a2ce28f24",
+          "name": "banner_carousel",
+          "label": "Banner Carousel",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_972bba1ccd4e4",
+              "label": "Slides",
+              "name": "slides",
+              "aria-label": "",
+              "type": "repeater",
+              "instructions": "",
+              "required": 0,
+              "conditional_logic": 0,
+              "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+              },
+              "layout": "row",
+              "pagination": 0,
+              "min": 1,
+              "max": 0,
+              "collapsed": "",
+              "button_label": "Add Slide",
+              "rows_per_page": 20,
+              "sub_fields": [
+                {
+                  "key": "field_14e3c64f92d15",
+                  "label": "Image",
+                  "name": "image",
+                  "aria-label": "",
+                  "type": "image",
+                  "instructions": "",
+                  "required": 0,
+                  "conditional_logic": 0,
+                  "wrapper": {
+                    "width": "",
+                    "class": "",
+                    "id": ""
+                  },
+                  "return_format": "array",
+                  "preview_size": "medium",
+                  "library": "all",
+                  "mime_types": ""
+                },
+                {
+                  "key": "field_e90c80016513f",
+                  "label": "Content",
+                  "name": "content",
+                  "aria-label": "",
+                  "type": "clone",
+                  "instructions": "",
+                  "required": 0,
+                  "conditional_logic": 0,
+                  "wrapper": {
+                    "width": "",
+                    "class": "",
+                    "id": ""
+                  },
+                  "clone": [
+                    "group_6377f7f384a4c"
+                  ],
+                  "display": "seamless",
+                  "layout": "block",
+                  "prefix_label": 0,
+                  "prefix_name": 0
+                },
+                {
+                  "key": "field_7c5732a1b2920",
+                  "label": "Button",
+                  "name": "button",
+                  "aria-label": "",
+                  "type": "clone",
+                  "instructions": "",
+                  "required": 0,
+                  "conditional_logic": 0,
+                  "wrapper": {
+                    "width": "",
+                    "class": "",
+                    "id": ""
+                  },
+                  "clone": [
+                    "group_6377f23bd0d95"
+                  ],
+                  "display": "seamless",
+                  "layout": "block",
+                  "prefix_label": 0,
+                  "prefix_name": 0
+                }
+              ]
+            },
+            {
+              "key": "field_7cffc894facd4",
+              "label": "Component Options",
+              "name": "component_options",
+              "aria-label": "",
+              "type": "clone",
+              "instructions": "",
+              "required": 0,
+              "conditional_logic": 0,
+              "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+              },
+              "clone": [
+                "group_63894140af6e3"
+              ],
+              "display": "seamless",
+              "layout": "block",
+              "prefix_label": 0,
+              "prefix_name": 0
+            }
+          ],
+          "min": "",
+          "max": ""
+        },
+        "layout_92a845bc5b653": {
+          "key": "layout_92a845bc5b653",
+          "name": "wine_cta",
+          "label": "Wine CTA",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_ea8b292899610",
+              "label": "Content",
+              "name": "content",
+              "aria-label": "",
+              "type": "clone",
+              "instructions": "",
+              "required": 0,
+              "conditional_logic": 0,
+              "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+              },
+              "clone": [
+                "group_6377f7f384a4c"
+              ],
+              "display": "seamless",
+              "layout": "block",
+              "prefix_label": 0,
+              "prefix_name": 0
+            },
+            {
+              "key": "field_d1ed23c1d569a",
+              "label": "Button",
+              "name": "button",
+              "aria-label": "",
+              "type": "clone",
+              "instructions": "",
+              "required": 0,
+              "conditional_logic": 0,
+              "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+              },
+              "clone": [
+                "group_6377f23bd0d95"
+              ],
+              "display": "seamless",
+              "layout": "block",
+              "prefix_label": 0,
+              "prefix_name": 0
+            },
+            {
+              "key": "field_cdc49fd876fab",
+              "label": "Images",
+              "name": "images",
+              "aria-label": "",
+              "type": "group",
+              "instructions": "",
+              "required": 0,
+              "conditional_logic": 0,
+              "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+              },
+              "layout": "block",
+              "sub_fields": [
+                {
+                  "key": "field_9a025f7838b08",
+                  "label": "Image",
+                  "name": "image",
+                  "aria-label": "",
+                  "type": "repeater",
+                  "instructions": "",
+                  "required": 0,
+                  "conditional_logic": 0,
+                  "wrapper": {
+                    "width": "",
+                    "class": "",
+                    "id": ""
+                  },
+                  "layout": "row",
+                  "pagination": 0,
+                  "min": 1,
+                  "max": 2,
+                  "collapsed": "",
+                  "button_label": "Add Wine",
+                  "rows_per_page": 20,
+                  "sub_fields": [
+                    {
+                      "key": "field_cefaea4f53aa4",
+                      "label": "Slug",
+                      "name": "slug",
+                      "aria-label": "",
+                      "type": "text",
+                      "instructions": "",
+                      "required": 0,
+                      "conditional_logic": 0,
+                      "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                      },
+                      "default_value": ""
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "key": "field_fbd69852627b0",
+              "label": "Component Options",
+              "name": "component_options",
+              "aria-label": "",
+              "type": "clone",
+              "instructions": "",
+              "required": 0,
+              "conditional_logic": 0,
+              "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+              },
+              "clone": [
+                "group_63894140af6e3"
+              ],
+              "display": "seamless",
+              "layout": "block",
+              "prefix_label": 0,
+              "prefix_name": 0
+            }
+          ],
+          "min": "",
+          "max": ""
+        },
+        "layout_d5ee6d5d003ce": {
+          "key": "layout_d5ee6d5d003ce",
+          "name": "banner_quote",
+          "label": "Banner Quote",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_529323e554fd3",
+              "label": "Image",
+              "name": "image",
+              "aria-label": "",
+              "type": "image",
+              "instructions": "",
+              "required": 0,
+              "conditional_logic": 0,
+              "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+              },
+              "return_format": "array",
+              "preview_size": "medium",
+              "library": "all",
+              "mime_types": ""
+            },
+            {
+              "key": "field_abe55e21d9e28",
+              "label": "Content",
+              "name": "content",
+              "aria-label": "",
+              "type": "group",
+              "instructions": "",
+              "required": 0,
+              "conditional_logic": 0,
+              "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+              },
+              "layout": "block",
+              "sub_fields": [
+                {
+                  "key": "field_d5a4d5d900dbd",
+                  "label": "Quote",
+                  "name": "quote",
+                  "aria-label": "",
+                  "type": "textarea",
+                  "instructions": "",
+                  "required": 0,
+                  "conditional_logic": 0,
+                  "wrapper": {
+                    "width": "",
+                    "class": "",
+                    "id": ""
+                  },
+                  "default_value": "",
+                  "rows": 6,
+                  "new_lines": ""
+                },
+                {
+                  "key": "field_cac4bf8f28a30",
+                  "label": "Author",
+                  "name": "author",
+                  "aria-label": "",
+                  "type": "text",
+                  "instructions": "",
+                  "required": 0,
+                  "conditional_logic": 0,
+                  "wrapper": {
+                    "width": "",
+                    "class": "",
+                    "id": ""
+                  },
+                  "default_value": ""
+                },
+                {
+                  "key": "field_270b3e7ad915d",
+                  "label": "Title",
+                  "name": "title",
+                  "aria-label": "",
+                  "type": "text",
+                  "instructions": "",
+                  "required": 0,
+                  "conditional_logic": 0,
+                  "wrapper": {
+                    "width": "",
+                    "class": "",
+                    "id": ""
+                  },
+                  "default_value": ""
+                }
+              ]
+            },
+            {
+              "key": "field_706b092580059",
+              "label": "Component Options",
+              "name": "component_options",
+              "aria-label": "",
+              "type": "clone",
+              "instructions": "",
+              "required": 0,
+              "conditional_logic": 0,
+              "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+              },
+              "clone": [
+                "group_63894140af6e3"
+              ],
+              "display": "seamless",
+              "layout": "block",
+              "prefix_label": 0,
+              "prefix_name": 0
+            }
+          ],
+          "min": "",
+          "max": ""
+        },
+        "layout_a0d81f8cfee62": {
+          "key": "layout_a0d81f8cfee62",
+          "name": "membership_cta",
+          "label": "Membership CTA",
+          "display": "block",
+          "sub_fields": [
+            {
+              "key": "field_5e1daa00b2b9f",
+              "label": "Image",
+              "name": "image",
+              "aria-label": "",
+              "type": "image",
+              "instructions": "",
+              "required": 0,
+              "conditional_logic": 0,
+              "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+              },
+              "return_format": "array",
+              "preview_size": "medium",
+              "library": "all",
+              "mime_types": ""
+            },
+            {
+              "key": "field_1e036ca8b1761",
+              "label": "Content",
+              "name": "content",
+              "aria-label": "",
+              "type": "clone",
+              "instructions": "",
+              "required": 0,
+              "conditional_logic": 0,
+              "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+              },
+              "clone": [
+                "group_6377f7f384a4c"
+              ],
+              "display": "seamless",
+              "layout": "block",
+              "prefix_label": 0,
+              "prefix_name": 0
+            },
+            {
+              "key": "field_24daddbc1b1a9",
+              "label": "Button",
+              "name": "button",
+              "aria-label": "",
+              "type": "clone",
+              "instructions": "",
+              "required": 0,
+              "conditional_logic": 0,
+              "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+              },
+              "clone": [
+                "group_6377f23bd0d95"
+              ],
+              "display": "seamless",
+              "layout": "block",
+              "prefix_label": 0,
+              "prefix_name": 0
+            },
+            {
+              "key": "field_d57921b1a1eda",
+              "label": "Component Options",
+              "name": "component_options",
+              "aria-label": "",
+              "type": "clone",
+              "instructions": "",
+              "required": 0,
+              "conditional_logic": 0,
+              "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+              },
+              "clone": [
+                "group_63894140af6e3"
+              ],
+              "display": "seamless",
+              "layout": "block",
+              "prefix_label": 0,
+              "prefix_name": 0
+            }
+          ],
+          "min": "",
+          "max": ""
+        }
+      }
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "post_type",
+        "operator": "==",
+        "value": "page"
+      }
+    ],
+    [
+      {
+        "param": "post_type",
+        "operator": "==",
+        "value": "post"
+      }
+    ]
+  ],
+  "menu_order": 0,
+  "position": "normal",
+  "style": "default",
+  "label_placement": "top",
+  "instruction_placement": "label",
+  "hide_on_screen": "",
+  "active": true,
+  "description": "",
+  "show_in_rest": 1,
+  "_valid": true,
+  "local": "json",
+  "local_file": "/var/www/vhosts/roostergrintemplates.com/api-gordon-acf-demo.roostergrintemplates.com/wp-content/themes/dist/acf-json/group_63448e846a361.json",
+  "modified": 1772473582
+}

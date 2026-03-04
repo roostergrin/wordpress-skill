@@ -3,12 +3,29 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 SKILL_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
-WORKSPACE_ROOT="$(pwd -P)"
-WORKSPACE_ENV_FILE="${WORKSPACE_ROOT}/.env"
-WORKSPACE_RUNTIME_DIR="${WORKSPACE_ROOT}/runtime"
-SCHEMA_DEPLOY_RUNTIME_DIR="${WORKSPACE_RUNTIME_DIR}/schema-deploy"
-ACF_JSON_DIR="${WORKSPACE_ROOT}/wp-content/acf-json"
-BOOTSTRAP_RUNTIME_DIR="${WORKSPACE_RUNTIME_DIR}/bootstrap"
+CURRENT_DIR="$(pwd -P)"
+
+resolve_path() {
+  local base_dir="$1"
+  local configured_path="$2"
+
+  if [[ "${configured_path}" == /* ]]; then
+    printf '%s' "${configured_path}"
+  else
+    printf '%s/%s' "${base_dir}" "${configured_path}"
+  fi
+}
+
+WORKSPACE_ROOT="$(resolve_path "${CURRENT_DIR}" "${ACF_WORKSPACE_ROOT:-${CURRENT_DIR}}")"
+if [[ -d "${WORKSPACE_ROOT}" ]]; then
+  WORKSPACE_ROOT="$(cd -- "${WORKSPACE_ROOT}" && pwd -P)"
+fi
+
+WORKSPACE_ENV_FILE="$(resolve_path "${WORKSPACE_ROOT}" "${ACF_ENV_FILE:-.env}")"
+WORKSPACE_RUNTIME_DIR="$(resolve_path "${WORKSPACE_ROOT}" "${ACF_RUNTIME_DIR:-tmp/wp-acf}")"
+SCHEMA_DEPLOY_RUNTIME_DIR="$(resolve_path "${WORKSPACE_ROOT}" "${ACF_SCHEMA_DEPLOY_RUNTIME_DIR:-${WORKSPACE_RUNTIME_DIR}/schema-deploy}")"
+ACF_JSON_DIR="$(resolve_path "${WORKSPACE_ROOT}" "${ACF_JSON_DIR:-wp-content/acf-json}")"
+BOOTSTRAP_RUNTIME_DIR="${SCHEMA_DEPLOY_RUNTIME_DIR}/bootstrap"
 DIFFS_RUNTIME_DIR="${WORKSPACE_RUNTIME_DIR}/diffs"
 
 export SKILL_ROOT
@@ -19,6 +36,10 @@ export SCHEMA_DEPLOY_RUNTIME_DIR
 export ACF_JSON_DIR
 export BOOTSTRAP_RUNTIME_DIR
 export DIFFS_RUNTIME_DIR
+export ACF_WORKSPACE_ROOT="${WORKSPACE_ROOT}"
+export ACF_ENV_FILE="${WORKSPACE_ENV_FILE}"
+export ACF_RUNTIME_DIR="${WORKSPACE_RUNTIME_DIR}"
+export ACF_SCHEMA_DEPLOY_RUNTIME_DIR="${SCHEMA_DEPLOY_RUNTIME_DIR}"
 
 API_CURL_AUTH_ARGS=()
 PUSH_SIGNATURE_HEADERS=()
@@ -174,6 +195,19 @@ render_api_error() {
     if jq -e '.data.errors | type == "array"' "${body_file}" >/dev/null 2>&1; then
       echo "  details:" >&2
       jq -r '.data.errors[] | "    - " + .' "${body_file}" >&2
+    fi
+
+    if jq -e '.data.db_only_group_keys | type == "array"' "${body_file}" >/dev/null 2>&1; then
+      echo "  db_only_group_keys:" >&2
+      jq -r '.data.db_only_group_keys[] | "    - " + .' "${body_file}" >&2
+    fi
+
+    if jq -e '.data.json_dir | type == "string" and .data.json_dir != ""' "${body_file}" >/dev/null 2>&1; then
+      echo "  json_dir: $(jq -r '.data.json_dir' "${body_file}")" >&2
+    fi
+
+    if [[ "${code}" == "acf_schema_api_strict_json_violation" ]]; then
+      echo "  fix: export/sync the DB-only field groups to JSON in WordPress, then rerun pull/push." >&2
     fi
 
     return

@@ -1,0 +1,142 @@
+{
+  "ID": 308,
+  "key": "group_6377f7f384a4c",
+  "title": "_Content",
+  "fields": [
+    {
+      "key": "field_6377f7f3b578c",
+      "label": "Content",
+      "name": "content",
+      "aria-label": "",
+      "type": "group",
+      "instructions": "",
+      "required": 0,
+      "conditional_logic": 0,
+      "wrapper": {
+        "width": "",
+        "class": "",
+        "id": ""
+      },
+      "layout": "block",
+      "sub_fields": [
+        {
+          "key": "field_6377f84cb578f",
+          "label": "Content",
+          "name": "",
+          "aria-label": "",
+          "type": "tab",
+          "instructions": "",
+          "required": 0,
+          "conditional_logic": 0,
+          "wrapper": {
+            "width": "",
+            "class": "",
+            "id": ""
+          },
+          "placement": "top",
+          "endpoint": 0
+        },
+        {
+          "key": "field_f22e06ac4977d",
+          "label": "Heading",
+          "name": "heading",
+          "aria-label": "",
+          "type": "text",
+          "instructions": "",
+          "required": 0,
+          "conditional_logic": 0,
+          "wrapper": {
+            "width": "",
+            "class": "",
+            "id": ""
+          },
+          "default_value": ""
+        },
+        {
+          "key": "field_f1d707a5e640e",
+          "label": "Subheading",
+          "name": "subheading",
+          "aria-label": "",
+          "type": "text",
+          "instructions": "",
+          "required": 0,
+          "conditional_logic": 0,
+          "wrapper": {
+            "width": "",
+            "class": "",
+            "id": ""
+          },
+          "default_value": ""
+        },
+        {
+          "key": "field_6377f875b5791",
+          "label": "Body",
+          "name": "body",
+          "aria-label": "",
+          "type": "textarea",
+          "instructions": "",
+          "required": 0,
+          "conditional_logic": 0,
+          "wrapper": {
+            "width": "",
+            "class": "",
+            "id": ""
+          },
+          "default_value": "",
+          "rows": 6,
+          "new_lines": ""
+        },
+        {
+          "key": "field_d4b400a82472e",
+          "label": "Heading Type",
+          "name": "heading_type",
+          "aria-label": "",
+          "type": "select",
+          "instructions": "",
+          "required": 0,
+          "conditional_logic": 0,
+          "wrapper": {
+            "width": "",
+            "class": "",
+            "id": ""
+          },
+          "choices": {
+            "h2": "H2",
+            "h3": "H3",
+            "h4": "H4"
+          },
+          "default_value": "h2",
+          "return_format": "value",
+          "multiple": 0,
+          "allow_null": 0,
+          "ui": 0,
+          "ajax": 0,
+          "placeholder": ""
+        }
+      ]
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "post",
+        "operator": "==",
+        "value": "1024"
+      }
+    ]
+  ],
+  "menu_order": 0,
+  "position": "normal",
+  "style": "default",
+  "label_placement": "top",
+  "instruction_placement": "label",
+  "hide_on_screen": "",
+  "active": true,
+  "description": "",
+  "show_in_rest": 0,
+  "_valid": true,
+  "local": "json",
+  "display_title": "",
+  "local_file": "/var/www/vhosts/roostergrintemplates.com/api-gordon-acf-demo.roostergrintemplates.com/wp-content/themes/dist/acf-json/group_6377f7f384a4c.json",
+  "modified": 1772473324
+}

@@ -5,7 +5,7 @@ usage() {
   cat <<'EOF'
 Usage: pull.sh [--dry-run] [--prune] [--active-only]
 
-Pull ACF schema from the WordPress plugin API into ./wp-content/acf-json/ in the current repo.
+Pull ACF schema from the WordPress plugin API into the resolved ACF_JSON_DIR.
 This script writes one pretty JSON file per field group (group_*.json).
 EOF
 }

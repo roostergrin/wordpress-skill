@@ -12,20 +12,14 @@ Skill entrypoint for Codex is this directory's `SKILL.md`.
 ## Commands
 
 ```bash
-# Run from the target repo root.
-
-# Pull latest schema from WordPress
-scripts/pull.sh
-
-# Push dry-run (recommended first)
-scripts/push.sh --dry-run
-
-# Push apply
-scripts/push.sh
-
-# Intentionally changing field keys
-scripts/push.sh --allow-field-key-changes
+# Preferred wrapper
+wp-acf schema pull
+wp-acf schema push --dry-run
+wp-acf schema push
+wp-acf schema push --allow-field-key-changes
 ```
+
+Direct script paths remain supported.
 
 `scripts/deploy-main.sh` is a backward-compatible alias to `scripts/push.sh`.
 

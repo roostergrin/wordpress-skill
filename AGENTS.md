@@ -1,6 +1,7 @@
 # ACF WordPress Skills
 
 This project manages ACF (Advanced Custom Fields) for a headless WordPress site. Four skills handle setup verification plus the full lifecycle: preflight, schema editing, deployment, and content management.
+Use `skills/*.md` as the neutral source of truth and prefer the `wp-acf` wrapper for commands.
 
 ## When to use which skill
 

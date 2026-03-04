@@ -16,7 +16,7 @@ The plugin is maintained in the separate `wp-acf-schema-api-plugin` repository.
 
 - Open WordPress `Settings > Codex Automation`
 - Click `Generate Copyable .env Block`
-- Paste the output into `./.env` in the target repo root
+- Paste the output into the target workspace `.env`
 
 This is the simplest path because it avoids the extra bootstrap step entirely.
 
@@ -38,7 +38,7 @@ EOF
 Alternative CLI bootstrap once the plugin exposes a claim token:
 
 ```bash
-scripts/bootstrap-repo.sh --claim-token <token>
+wp-acf schema bootstrap --claim-token <token>
 ```
 
 Optional for sites that explicitly enable `acf_schema_api_require_signed_push`:
@@ -55,13 +55,13 @@ Optional: set endpoint overrides directly in `./.env`:
 ## 5) Pull baseline schema
 
 ```bash
-scripts/pull.sh
+wp-acf schema pull
 ```
 
 ## 6) Smoke test push (dry-run)
 
 ```bash
-scripts/push.sh --dry-run
+wp-acf schema push --dry-run
 ```
 
 If dry-run succeeds, plugin auth and schema validation are wired correctly.

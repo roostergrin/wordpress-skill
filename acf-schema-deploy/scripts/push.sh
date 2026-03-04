@@ -5,7 +5,7 @@ usage() {
   cat <<'EOF'
 Usage: push.sh [--dry-run] [--allow-field-key-changes] [--delete-missing] [--expected-hash <hash>]
 
-Push local ./wp-content/acf-json/group_*.json from the current repo to the WordPress plugin API.
+Push local group_*.json files from the resolved ACF_JSON_DIR to the WordPress plugin API.
 Validation is enforced server-side by the plugin.
 If TARGET_API_HMAC_SECRET or ACF_SCHEMA_API_HMAC_SECRET is set, signed headers are added automatically.
 EOF
@@ -55,7 +55,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 local_acf_dir="${ACF_JSON_DIR}"
-[[ -d "${local_acf_dir}" ]] || fail "Expected ACF schema at ${local_acf_dir}. Run this from the target repo root."
+[[ -d "${local_acf_dir}" ]] || fail "Expected trusted ACF schema at ${local_acf_dir}. Set ACF_JSON_DIR or run from the target workspace."
 
 require_command curl
 require_command jq

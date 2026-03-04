@@ -1,0 +1,160 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SOURCE="${BASH_SOURCE[0]}"
+while [[ -L "${SOURCE}" ]]; do
+  SOURCE_DIR="$(cd -P -- "$(dirname -- "${SOURCE}")" && pwd)"
+  TARGET="$(readlink "${SOURCE}")"
+  if [[ "${TARGET}" == /* ]]; then
+    SOURCE="${TARGET}"
+  else
+    SOURCE="${SOURCE_DIR}/${TARGET}"
+  fi
+done
+
+BIN_DIR="$(cd -P -- "$(dirname -- "${SOURCE}")" && pwd)"
+REPO_ROOT="$(cd -P -- "${BIN_DIR}/.." && pwd)"
+
+usage() {
+  cat <<'EOF'
+Usage:
+  wp-acf preflight [args...]
+  wp-acf schema pull [args...]
+  wp-acf schema push [args...]
+  wp-acf schema bootstrap [args...]
+  wp-acf schema deploy-plugin [args...]
+  wp-acf content allowlist [args...]
+  wp-acf content pull [args...]
+  wp-acf content push [args...]
+  wp-acf content test [args...]
+  wp-acf help
+
+Examples:
+  wp-acf preflight --id 8
+  wp-acf schema pull
+  wp-acf schema push --dry-run
+  wp-acf content allowlist
+  wp-acf content pull --resource-type pages --id 8
+  wp-acf content push --resource-type pages --id 8 --payload payload.json --dry-run
+EOF
+}
+
+schema_usage() {
+  cat <<'EOF'
+Usage:
+  wp-acf schema pull [args...]
+  wp-acf schema push [args...]
+  wp-acf schema bootstrap [args...]
+  wp-acf schema deploy-plugin [args...]
+EOF
+}
+
+content_usage() {
+  cat <<'EOF'
+Usage:
+  wp-acf content allowlist [args...]
+  wp-acf content pull [args...]
+  wp-acf content push [args...]
+  wp-acf content test [args...]
+EOF
+}
+
+fail() {
+  echo "ERROR: $*" >&2
+  exit 1
+}
+
+fail_with_usage() {
+  echo "ERROR: $*" >&2
+  usage >&2
+  exit 1
+}
+
+fail_with_schema_usage() {
+  echo "ERROR: $*" >&2
+  schema_usage >&2
+  exit 1
+}
+
+fail_with_content_usage() {
+  echo "ERROR: $*" >&2
+  content_usage >&2
+  exit 1
+}
+
+dispatch() {
+  local script_path="$1"
+  shift
+
+  [[ -f "${script_path}" ]] || fail "Script not found: ${script_path}"
+  exec bash "${script_path}" "$@"
+}
+
+command_name="${1:-help}"
+if [[ $# -gt 0 ]]; then
+  shift
+fi
+
+case "${command_name}" in
+  help|-h|--help)
+    usage
+    ;;
+  preflight)
+    dispatch "${REPO_ROOT}/wp-acf-preflight/scripts/preflight.sh" "$@"
+    ;;
+  schema)
+    schema_command="${1:-help}"
+    if [[ $# -gt 0 ]]; then
+      shift
+    fi
+    case "${schema_command}" in
+      help|-h|--help)
+        schema_usage
+        ;;
+      pull)
+        dispatch "${REPO_ROOT}/acf-schema-deploy/scripts/pull.sh" "$@"
+        ;;
+      push)
+        dispatch "${REPO_ROOT}/acf-schema-deploy/scripts/push.sh" "$@"
+        ;;
+      bootstrap)
+        dispatch "${REPO_ROOT}/acf-schema-deploy/scripts/bootstrap-repo.sh" "$@"
+        ;;
+      deploy-plugin)
+        dispatch "${REPO_ROOT}/acf-schema-deploy/scripts/deploy-plugin-ssh.sh" "$@"
+        ;;
+      *)
+        fail_with_schema_usage "Unknown schema subcommand: ${schema_command}"
+        ;;
+    esac
+    ;;
+  content)
+    content_command="${1:-help}"
+    if [[ $# -gt 0 ]]; then
+      shift
+    fi
+    case "${content_command}" in
+      help|-h|--help)
+        content_usage
+        ;;
+      allowlist)
+        dispatch "${REPO_ROOT}/wp-acf-content-api/scripts/build-allowlist.sh" "$@"
+        ;;
+      pull)
+        dispatch "${REPO_ROOT}/wp-acf-content-api/scripts/pull-content.sh" "$@"
+        ;;
+      push)
+        dispatch "${REPO_ROOT}/wp-acf-content-api/scripts/push-content.sh" "$@"
+        ;;
+      test)
+        dispatch "${REPO_ROOT}/wp-acf-content-api/scripts/run-tests.sh" "$@"
+        ;;
+      *)
+        fail_with_content_usage "Unknown content subcommand: ${content_command}"
+        ;;
+    esac
+    ;;
+  *)
+    fail_with_usage "Unknown command: ${command_name}"
+    ;;
+esac

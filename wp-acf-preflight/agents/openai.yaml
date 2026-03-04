@@ -1,4 +1,4 @@
 interface:
   display_name: "WP ACF Preflight"
-  short_description: "Verify repo-local WordPress ACF automation setup before schema or content work"
-  default_prompt: "Use $wp-acf-preflight to verify that the current repo is ready for ACF automation. Check auth, schema pull/push, allowlist generation, content pull, and optional live write/rollback without exposing secrets."
+  short_description: "Verify WordPress ACF automation setup for a target workspace"
+  default_prompt: "Use $wp-acf-preflight for readiness checks. Follow the neutral workflow in skills/wp-acf-preflight.md and prefer the wp-acf wrapper command surface."

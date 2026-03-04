@@ -5,8 +5,7 @@ usage() {
   cat <<'EOF'
 Usage: bootstrap-repo.sh (--claim-token <token> | --claim-url <url>) [--verify-id <resource-id>]
 
-Claim a site-specific automation secret and write the managed keys into ./.env.
-Run this from the target repo root.
+Claim a site-specific automation secret and write the managed keys into the resolved env file.
 EOF
 }
 

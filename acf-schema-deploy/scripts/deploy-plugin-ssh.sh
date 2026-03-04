@@ -5,7 +5,7 @@ usage() {
   cat <<'EOF'
 Usage: deploy-plugin-ssh.sh [--plugin-repo <path>]
 
-Build the local wp-acf-schema-api-plugin zip and deploy it over SSH to the current target in ./.env.
+Build the local wp-acf-schema-api-plugin zip and deploy it over SSH to the current target in the resolved env file.
 EOF
 }
 

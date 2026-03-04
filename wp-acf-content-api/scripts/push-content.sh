@@ -90,7 +90,7 @@ is_allowed_resource_type "${RESOURCE_TYPE}" "${ALLOWED_RESOURCE_TYPES}" || fail 
 if [[ -z "${ALLOWLIST_PATH}" ]]; then
   ALLOWLIST_PATH="${CONTENT_API_FIELD_NAMES_FILE}"
 fi
-[[ -f "${ALLOWLIST_PATH}" ]] || fail "Allowlist file not found: ${ALLOWLIST_PATH}. Run scripts/build-allowlist.sh first."
+[[ -f "${ALLOWLIST_PATH}" ]] || fail "Allowlist file not found: ${ALLOWLIST_PATH}. Run wp-acf content allowlist first, or set ACF_CONTENT_API_RUNTIME_DIR/ACF_FIELD_NAME_ALLOWLIST_FILE."
 [[ -s "${ALLOWLIST_PATH}" ]] || fail "Allowlist file is empty: ${ALLOWLIST_PATH}"
 
 jq -e 'type=="object" and (keys - ["acf"] | length == 0) and .acf and (.acf | type=="object")' "${PAYLOAD_PATH}" >/dev/null \

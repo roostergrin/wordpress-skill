@@ -5,11 +5,11 @@ usage() {
   cat <<'EOF'
 Usage: build-allowlist.sh [--out <path>]
 
-Generate allowlisted ACF field names and field keys from ./wp-content/acf-json in the current repo.
+Generate allowlisted ACF field names and field keys from the configured trusted ACF schema directory.
 
 Outputs:
-  ./runtime/content-api/allowed-field-names.txt  — human-readable names (used by push-content.sh)
-  ./runtime/content-api/allowed-field-keys.txt   — internal field_* keys (reference/audit)
+  ./tmp/wp-acf/content-api/allowed-field-names.txt  — human-readable names (used by push-content.sh)
+  ./tmp/wp-acf/content-api/allowed-field-keys.txt   — internal field_* keys (reference/audit)
 EOF
 }
 
@@ -51,7 +51,7 @@ else
 fi
 
 acf_dir="${ACF_JSON_DIR}"
-[[ -d "${acf_dir}" ]] || fail "Expected ACF schema at ${acf_dir}. Run this from the target repo root."
+[[ -d "${acf_dir}" ]] || fail "Expected trusted ACF schema at ${acf_dir}. Run from the target workspace or set ACF_JSON_DIR."
 
 tmp_keys="$(mktemp)"
 tmp_names="$(mktemp)"

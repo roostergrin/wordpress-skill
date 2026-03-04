@@ -1,72 +1,70 @@
 # ACF Schema Deploy
 
-Safely manage ACF schema-as-code for a single main WordPress backend using a plugin API pull/push flow.
+Safely manage ACF schema-as-code for a single main WordPress backend using the plugin API pull/push workflow.
 
-**Use when:** requests involve pulling schema to local JSON or pushing updated schema JSON to WordPress.
-Assumes the standalone `wp-acf-schema-api-plugin` repository is already installed on the target WordPress site.
+**Use when:** requests involve pulling schema to local JSON, pushing updated schema JSON, bootstrapping automation auth, or deploying the plugin over SSH.
 
-**Paths:** see `skills/config.md`. When this global skill runs, the current working directory is the target repo root. It uses `./.env`, `./wp-content/acf-json/`, and `./runtime/schema-deploy/`.
+**Runtime model:** the scripts are global; the resolved workspace owns `.env`, `wp-content/acf-json/`, and `tmp/wp-acf/schema-deploy/`.
 
 ## Required Inputs
-- Schema change to deploy, or request to pull latest schema.
-- Confirmation this is for the single `main` backend.
-- Preferred setup: the copyable `.env` block from the WordPress plugin admin page.
-- Alternative bootstrap setup: a one-time claim token or claim URL from the WordPress plugin.
+
+- A target workspace
+- WordPress API config in the resolved env file
+- A trusted schema directory, usually `wp-content/acf-json`
+- Confirmation that the change targets the single `main` backend
 
 ## Hard Guardrails
-- Edit only `wp-content/acf-json/**` inside the schema repo.
-- Never edit frontend repositories.
-- Never print or expose secrets (`.env`, `wp-config.php`, private keys).
-- Never run arbitrary shell outside declared scripts.
-- Use only `pull.sh` and `push.sh` for schema transport.
-- Push auth comes from WordPress API credentials; signed push is optional.
+
+- Edit only trusted schema JSON under the resolved `ACF_JSON_DIR`.
+- Never expose secrets from `.env`, `wp-config.php`, or SSH keys.
+- Use `pull` and `push` for schema transport.
+- Treat push validation as server-side and authoritative.
 
 ## Quick Start
+
 ```bash
-# Run from the target repo root.
-
-# Preferred: open WordPress Settings > Codex Automation and copy the generated .env block
-
-# Alternative CLI bootstrap from a claim token exposed by the plugin
-scripts/bootstrap-repo.sh --claim-token <token>
-
-# Pull from WordPress
-scripts/pull.sh
-
-# Edit JSON files locally (see skills/acf-schema-edit.md)
-
-# Push dry-run then apply
-scripts/push.sh --dry-run
-scripts/push.sh
-
-# For intentional field-key set changes
-scripts/push.sh --allow-field-key-changes
+wp-acf schema bootstrap --claim-token <token>
+wp-acf schema pull
+wp-acf schema push --dry-run
+wp-acf schema push
 ```
 
-## Scripts
-| Script | Purpose |
-|--------|---------|
-| `scripts/pull.sh` | Pull schema from WordPress API into local `wp-content/acf-json/` |
-| `scripts/push.sh` | Push local `group_*.json` to WordPress API |
-| `scripts/deploy-main.sh` | Backward-compatible alias to `push.sh` |
-| `scripts/bootstrap-repo.sh` | Claim a plugin-managed automation secret and write repo-local `.env` keys |
-| `scripts/deploy-plugin-ssh.sh` | Build and upload the WordPress plugin over SSH using repo-local target config |
+Intentional field-key changes:
 
-Validation now runs in the plugin API:
-- payload structure checks
-- duplicate sibling field-name checks
-- field-key stability checks (unless explicitly allowed)
-- optional signed push checks when the site enables them
+```bash
+wp-acf schema push --allow-field-key-changes
+```
 
-## Workflow Detail
-1. Pull: `scripts/pull.sh`
-2. Edit JSON locally.
-3. Review diff.
-4. Push dry-run: `scripts/push.sh --dry-run`
-5. Push apply: `scripts/push.sh`
+Direct script paths remain supported:
 
-Both `pull.sh` and `push.sh` automatically generate a timestamped diff file in `./runtime/diffs/` showing schema before and after the operation. The diff path is printed as the last output line (e.g. `diff=runtime/diffs/schema-push-20260303-143022.diff`).
+```bash
+acf-schema-deploy/scripts/pull.sh
+acf-schema-deploy/scripts/push.sh --dry-run
+```
+
+## Runtime Outputs
+
+Default schema deploy artifacts live under:
+
+```text
+<workspace>/tmp/wp-acf/schema-deploy/
+```
+
+Override with `ACF_SCHEMA_DEPLOY_RUNTIME_DIR` if needed.
+
+## Supported Commands
+
+| Wrapper Command | Purpose |
+|-----------------|---------|
+| `wp-acf schema pull` | Pull schema from the WordPress API into the resolved `ACF_JSON_DIR` |
+| `wp-acf schema push` | Push local `group_*.json` to the WordPress API |
+| `wp-acf schema bootstrap` | Claim plugin-managed automation auth and write it into the resolved env file |
+| `wp-acf schema deploy-plugin` | Build and upload the plugin over SSH using resolved env settings |
+
+Both `pull.sh` and `push.sh` automatically generate a timestamped diff file under `<workspace>/tmp/wp-acf/diffs/` showing schema before and after the operation. The diff path is printed as the last output line (for example `diff=/abs/path/to/workspace/tmp/wp-acf/diffs/schema-push-20260303-143022.diff`).
 
 ## References
+
+- `skills/config.md`
+- `skills/acf-schema-edit.md`
 - `acf-schema-deploy/references/bootstrap.md`
-- `acf-schema-deploy/references/github-actions-main.yml`
