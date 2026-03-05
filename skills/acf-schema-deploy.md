@@ -2,7 +2,7 @@
 
 Safely manage ACF schema-as-code for a single main WordPress backend using the plugin API pull/push workflow.
 
-**Use when:** requests involve pulling schema to local JSON, pushing updated schema JSON, bootstrapping automation auth, or deploying the plugin over SSH.
+**Use when:** requests involve pulling schema to local JSON, pushing updated schema JSON, or deploying the plugin over SSH.
 
 **Runtime model:** the scripts are global; the resolved workspace owns `.env`, `wp-content/acf-json/`, and `tmp/wp-acf/schema-deploy/`.
 
@@ -22,11 +22,18 @@ Safely manage ACF schema-as-code for a single main WordPress backend using the p
 
 ## Quick Start
 
+Install and activate the plugin on the WordPress site, then open `Settings > AI Automation` and paste the generated `.env` block into the target workspace.
+
 ```bash
-wp-acf schema bootstrap --claim-token <token>
 wp-acf schema pull
 wp-acf schema push --dry-run
 wp-acf schema push
+```
+
+Advanced fallback, if you explicitly need CLI claim flow:
+
+```bash
+wp-acf schema bootstrap --claim-token <token>
 ```
 
 Intentional field-key changes:
@@ -58,7 +65,7 @@ Override with `ACF_SCHEMA_DEPLOY_RUNTIME_DIR` if needed.
 |-----------------|---------|
 | `wp-acf schema pull` | Pull schema from the WordPress API into the resolved `ACF_JSON_DIR` |
 | `wp-acf schema push` | Push local `group_*.json` to the WordPress API |
-| `wp-acf schema bootstrap` | Claim plugin-managed automation auth and write it into the resolved env file |
+| `wp-acf schema bootstrap` | Advanced fallback: claim plugin-managed automation auth and write it into the resolved env file |
 | `wp-acf schema deploy-plugin` | Build and upload the plugin over SSH using resolved env settings |
 
 Both `pull.sh` and `push.sh` automatically generate a timestamped diff file under `<workspace>/tmp/wp-acf/diffs/` showing schema before and after the operation. The diff path is printed as the last output line (for example `diff=/abs/path/to/workspace/tmp/wp-acf/diffs/schema-push-20260303-143022.diff`).

@@ -2,13 +2,15 @@
 
 ## 1) Configure the target workspace
 
-Create or update the resolved env file:
+Install and activate the plugin on the WordPress site, then open `Settings > AI Automation` and paste the generated `.env` block into the target workspace.
+
+Fallback if you need to create the file manually:
 
 ```bash
 cp .env.example .env
 ```
 
-Preferred when the plugin exposes a claim token:
+Advanced fallback when you explicitly need claim-token bootstrap:
 
 ```bash
 wp-acf schema bootstrap --claim-token <token>

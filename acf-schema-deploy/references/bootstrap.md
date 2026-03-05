@@ -12,15 +12,17 @@ The plugin is maintained in the separate `wp-acf-schema-api-plugin` repository.
   - `POST /wp-json/acf-schema/v1/pull`
   - `POST /wp-json/acf-schema/v1/push`
 
+On activation, the plugin creates the automation defaults used by the local scripts.
+
 ## 2) Preferred setup: copy the generated `.env` block
 
-- Open WordPress `Settings > Codex Automation`
+- Open WordPress `Settings > AI Automation`
 - Click `Generate Copyable .env Block`
 - Paste the output into the target workspace `.env`
 
-This is the simplest path because it avoids the extra bootstrap step entirely.
+This is the normal path now. In most cases, installing and activating the plugin is all you need on the WordPress side.
 
-## 3) Alternative: Create Application Password user
+## 3) Optional fallback: Create Application Password user
 
 - Use a WordPress user with capability required by plugin (`manage_options` by default).
 - Generate an Application Password for that user.
@@ -35,7 +37,7 @@ WP_API_APP_PASSWORD="your-app-password"
 EOF
 ```
 
-Alternative CLI bootstrap once the plugin exposes a claim token:
+Advanced CLI bootstrap if you explicitly need claim-token flow:
 
 ```bash
 wp-acf schema bootstrap --claim-token <token>

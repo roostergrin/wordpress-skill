@@ -1,67 +1,30 @@
 # ACF WordPress Skills
 
-Neutral ACF automation skills for headless WordPress. The repo is designed to work across multiple LLM runtimes by separating:
+Use these skills when you want an agent to work with ACF-backed WordPress content and schema.
 
-- a shared core of shell scripts and `skills/*.md` docs
-- thin runtime adapters for Codex/OpenAI, Claude, Copilot, Cursor, and Windsurf
+From a user perspective, the flow is simple:
 
-The WordPress schema transport plugin lives in the separate `wp-acf-schema-api-plugin` repository.
+1. Install the WordPress plugin.
+2. Install the skills globally.
+3. Paste the generated `.env` block into your local workspace.
+4. Ask the agent to use the right skill for setup, content queries, or schema changes.
 
-## Command Surface
+`skills/*.md` are the real workflow docs. The `wp-acf` wrapper is the normal command surface behind the skills.
 
-The preferred entrypoint is the wrapper:
+## 1. Install The WordPress Plugin
 
-```bash
-wp-acf preflight [args...]
-wp-acf schema pull [args...]
-wp-acf schema push [args...]
-wp-acf schema bootstrap [args...]
-wp-acf schema deploy-plugin [args...]
-wp-acf content allowlist [args...]
-wp-acf content pull [args...]
-wp-acf content push [args...]
-wp-acf content test [args...]
-```
+On the WordPress site:
 
-Direct script paths remain supported, but the wrapper is the primary documented interface.
+1. Install and activate the `acf-schema-api` plugin.
+2. Open `Settings > AI Automation`.
+3. Click `Generate Copyable .env Block`.
+4. Paste that block into your local workspace as `.env`.
 
-## Target Workspace Contract
+That is the normal setup path now. You should not need a separate bootstrap step just to get started.
 
-The installed scripts are global. The workspace is local.
+## 2. Install The Skills Globally
 
-```text
-<workspace>/
-├── .env
-├── tmp/
-│   └── wp-acf/
-│       ├── preflight/
-│       ├── schema-deploy/
-│       └── content-api/
-└── wp-content/
-    └── acf-json/
-```
-
-- `.env` contains WordPress credentials and site settings.
-- `wp-content/acf-json/` is the trusted local schema source.
-- `tmp/wp-acf/` holds generated artifacts only.
-
-See [skills/config.md](/Users/gordonlewis/wordpress-skill/skills/config.md) for the full path contract.
-
-## Install
-
-### Wrapper
-
-Symlink the wrapper into your `PATH`:
-
-```bash
-ln -sf /Users/gordonlewis/wordpress-skill/bin/wp-acf ~/.local/bin/wp-acf
-```
-
-Any equivalent `PATH` setup is fine.
-
-### Codex install
-
-Install these skills into `$CODEX_HOME/skills` with the built-in installer:
+If you are using Codex, install these skills once into `$CODEX_HOME/skills`:
 
 ```bash
 python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py \
@@ -71,80 +34,156 @@ python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-githu
   --method git
 ```
 
-## Quick Start
+These skills are global. You install them once, then use them against any local WordPress workspace.
 
-### 1. Configure the target workspace
-
-From the target workspace, create or update `.env`.
-
-Minimum manual config:
+## 3. Put The Wrapper On Your PATH
 
 ```bash
-cat > .env <<'EOF'
-TARGET_BASE_URL="https://example.com"
-WP_API_USER="your-user"
-WP_API_APP_PASSWORD="your-app-password"
-EOF
+ln -sf /ABS/PATH/TO/wordpress-skill/bin/wp-acf ~/.local/bin/wp-acf
 ```
 
-Preferred setup from WordPress:
+## 4. Prepare A Local Workspace
 
-1. Open `Settings > Codex Automation`
-2. Generate the copyable `.env` block
-3. Paste it into the target workspace as `.env`
+Your local project should look like this:
 
-### 2. Run preflight
-
-```bash
-wp-acf preflight --id 8
-wp-acf preflight --id 8 --live
-wp-acf preflight --id 8 --globaldata-id 200
+```text
+<workspace>/
+├── .env
+├── tmp/
+│   └── wp-acf/
+└── wp-content/
+    └── acf-json/
 ```
 
-### 3. Pull or push schema
+- `.env` comes from `Settings > AI Automation`
+- `wp-content/acf-json/` is your trusted local schema
+- `tmp/wp-acf/` is where pulls, diffs, logs, and payloads are written
 
-```bash
-wp-acf schema pull
-wp-acf schema push --dry-run
-wp-acf schema push
-```
-
-### 4. Read or update content
-
-```bash
-wp-acf content allowlist
-wp-acf content pull --resource-type pages --id 8
-wp-acf content push --resource-type pages --id 8 --payload payload.json --dry-run
-wp-acf content push --resource-type pages --id 8 --payload payload.json
-```
-
-## Running From Another Directory
-
-If you are not in the target workspace, point the scripts at it explicitly:
+If you are not running from the workspace root:
 
 ```bash
 export ACF_WORKSPACE_ROOT="/abs/path/to/project"
 export ACF_JSON_DIR="/abs/path/to/project/wp-content/acf-json"
-
-wp-acf content pull --resource-type pages --id 8
 ```
 
-Default generated artifacts go to:
+## 5. Use The Skills
+
+### Set up and verify a workspace
+
+Ask the agent:
 
 ```text
-<workspace>/tmp/wp-acf/
+Use $wp-acf-preflight to verify this workspace against page 8.
 ```
 
-## Skills
+What it does:
+- checks local dependencies
+- verifies `.env`
+- tests schema pull/push
+- tests content pull/push dry-run
 
-- [skills/wp-acf-preflight.md](/Users/gordonlewis/wordpress-skill/skills/wp-acf-preflight.md): verify setup, auth, schema, and content automation
-- [skills/acf-schema-edit.md](/Users/gordonlewis/wordpress-skill/skills/acf-schema-edit.md): edit field groups safely by hand
-- [skills/acf-schema-deploy.md](/Users/gordonlewis/wordpress-skill/skills/acf-schema-deploy.md): pull and push schema through the WordPress plugin API
-- [skills/wp-acf-content-api.md](/Users/gordonlewis/wordpress-skill/skills/wp-acf-content-api.md): build allowlists, pull content, and push content changes
-- [skills/workflow.md](/Users/gordonlewis/wordpress-skill/skills/workflow.md): full design-to-schema-to-content workflow
+Command behind the skill:
 
-## LLM Runtime Notes
+```bash
+wp-acf preflight --id 8
+```
 
-- `skills/*.md` are the canonical workflow docs.
-- Runtime-specific files should only describe when to use a skill and where the shared docs live.
-- No runtime-specific file should contain unique workflow logic.
+If the site uses a `globaldata` record:
+
+```text
+Use $wp-acf-preflight to verify this workspace against page 8 and globaldata 200.
+```
+
+```bash
+wp-acf preflight --id 8 --globaldata-id 200
+```
+
+### Run content queries
+
+Ask the agent:
+
+```text
+Use $wp-acf-content-api to pull page 8 and show me seo.page_title.
+Use $wp-acf-content-api to pull page 8 and show me the full seo group.
+Use $wp-acf-content-api to pull page 8 and list the top-level ACF fields.
+```
+
+Typical commands behind those queries:
+
+```bash
+wp-acf content allowlist
+wp-acf content pull --resource-type pages --id 8
+jq '.seo.page_title' tmp/wp-acf/content-api/pull-pages-8-acf.json
+```
+
+```bash
+jq '.seo' tmp/wp-acf/content-api/pull-pages-8-acf.json
+```
+
+```bash
+jq 'keys' tmp/wp-acf/content-api/pull-pages-8-acf.json
+```
+
+### Update existing content
+
+Ask the agent:
+
+```text
+Use $wp-acf-content-api to update seo.page_title on page 8 to "Spring Release Landing Page".
+```
+
+The normal flow is:
+
+1. Pull current content.
+2. Build a payload using field names, not field keys.
+3. Dry-run the write.
+4. Apply the write.
+5. Pull again to verify.
+
+Example payload:
+
+```json
+{
+  "acf": {
+    "seo": {
+      "page_title": "Spring Release Landing Page"
+    }
+  }
+}
+```
+
+### Add a new field or layout
+
+Ask the agent:
+
+```text
+Use $acf-schema-edit and $acf-schema-deploy to add an eyebrow field to the _Content component and push the schema.
+```
+
+Use this path when you need to change `wp-content/acf-json/`.
+
+Small concrete example in this repo:
+- edit `wp-content/acf-json/group_6377f7f384a4c.json`
+- add a new `eyebrow` text field inside `fields[0].sub_fields`
+- generate a new `field_` key
+- update the top-level `modified` timestamp
+- validate the JSON
+- push with `wp-acf schema push --dry-run` and then `wp-acf schema push`
+
+### Build a page from a design
+
+Ask the agent to follow `skills/workflow.md` first, then use the skills in this order:
+
+1. `wp-acf-preflight`
+2. `acf-schema-edit`
+3. `acf-schema-deploy`
+4. `wp-acf-content-api`
+
+## Skill Map
+
+- `skills/wp-acf-preflight.md`: first-run setup and verification
+- `skills/wp-acf-content-api.md`: content pulls, queries, and updates
+- `skills/acf-schema-edit.md`: local ACF JSON edits
+- `skills/acf-schema-deploy.md`: schema pull and push
+- `skills/workflow.md`: end-to-end page workflow
+- `skills/config.md`: workspace and path rules

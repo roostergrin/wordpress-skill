@@ -1,6 +1,6 @@
 ---
 name: acf-schema-deploy
-description: Safely manage ACF schema-as-code for headless WordPress through a pull/push API workflow. Use when requests involve wp-content/acf-json updates, schema pull, schema push, bootstrap, or plugin deployment.
+description: Safely manage ACF schema-as-code for headless WordPress through a pull/push API workflow. Use when requests involve wp-content/acf-json updates, schema pull, schema push, or plugin deployment.
 ---
 
 # ACF Schema Deploy
@@ -41,7 +41,7 @@ See `skills/config.md` for the shared env and path contract.
 - A target workspace
 - Trusted schema JSON in the resolved `ACF_JSON_DIR`
 - WordPress API credentials or plugin-managed automation auth in the resolved env file
-- A request to pull, push, bootstrap, or deploy the plugin
+- A request to pull, push, or deploy the plugin
 
 ## Hard Guardrails
 
@@ -52,12 +52,19 @@ See `skills/config.md` for the shared env and path contract.
 
 ## Commands
 
+Install and activate the plugin on the WordPress site, then open `Settings > AI Automation` and paste the generated `.env` block into the target workspace.
+
 ```bash
-wp-acf schema bootstrap --claim-token <token>
 wp-acf schema pull
 wp-acf schema push --dry-run
 wp-acf schema push
 wp-acf schema deploy-plugin
+```
+
+Advanced fallback, if you explicitly need CLI claim flow:
+
+```bash
+wp-acf schema bootstrap --claim-token <token>
 ```
 
 ## Outputs

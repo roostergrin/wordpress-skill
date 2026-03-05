@@ -34,8 +34,9 @@ wp-acf preflight --id 8 --live
 
 ### Step 3: Deploy schema
 
+Assume the plugin is already installed and the workspace `.env` came from `Settings > AI Automation`.
+
 ```bash
-wp-acf schema bootstrap --claim-token <token>
 wp-acf schema pull
 wp-acf schema push --dry-run
 wp-acf schema push

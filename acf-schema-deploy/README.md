@@ -25,7 +25,9 @@ Direct script paths remain supported.
 
 ## Configure Target
 
-Set root-level env (preferred):
+Install and activate the plugin on the WordPress site, then open `Settings > AI Automation` and paste the generated `.env` block into the target workspace.
+
+Fallback if you need to set the root-level env manually:
 ```bash
 cp .env.example .env
 
