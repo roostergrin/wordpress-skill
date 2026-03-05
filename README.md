@@ -15,10 +15,13 @@ From a user perspective, the flow is simple:
 
 On the WordPress site:
 
-1. Install and activate the `acf-schema-api` plugin.
-2. Open `Settings > AI Automation`.
-3. Click `Generate Copyable .env Block`.
-4. Paste that block into your local workspace as `.env`.
+1. Open the plugin repo: [roostergrin/wp-acf-schema-api-plugin](https://github.com/roostergrin/wp-acf-schema-api-plugin).
+2. Open [Releases](https://github.com/roostergrin/wp-acf-schema-api-plugin/releases).
+3. Download the versioned plugin zip named `acf-schema-api-X.X.X.zip`.
+4. In WordPress, upload and activate that zip under `Plugins > Add Plugin > Upload Plugin`.
+5. Open `Settings > AI Automation`.
+6. Click `Generate Copyable .env Block`.
+7. Paste that block into your local workspace as `.env`.
 
 That is the normal setup path now. You should not need a separate bootstrap step just to get started.
 
